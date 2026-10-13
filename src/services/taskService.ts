@@ -5,6 +5,7 @@ import {
   deleteDoc,
   doc,
   query,
+  where,
   orderBy,
   onSnapshot,
   serverTimestamp,
@@ -40,13 +41,57 @@ export const getTasksRealtime = (
           dueDate: data.dueDate || '',
           createdAt: data.createdAt,
           teamId: data.teamId ?? null,
+          teamName: data.teamName ?? null,
           assigneeId: data.assigneeId ?? null,
+          assigneeName: data.assigneeName ?? null,
         } as Task;
       });
       onSuccess(tasks);
     },
     err => {
       console.error('Error fetching tasks realtime:', err);
+      if (onError) onError(err);
+    },
+  );
+};
+
+/**
+ * Real-time listener for tasks belonging to a specific team
+ */
+export const getTeamTasksRealtime = (
+  teamId: string,
+  onSuccess: (tasks: Task[]) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe => {
+  const q = query(
+    tasksCollectionRef,
+    where('teamId', '==', teamId),
+    orderBy('createdAt', 'desc'),
+  );
+
+  return onSnapshot(
+    q,
+    snapshot => {
+      const tasks: Task[] = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          title: data.title,
+          description: data.description || '',
+          status: data.status || 'To Do',
+          priority: data.priority || 'Medium',
+          dueDate: data.dueDate || '',
+          createdAt: data.createdAt,
+          teamId: data.teamId ?? null,
+          teamName: data.teamName ?? null,
+          assigneeId: data.assigneeId ?? null,
+          assigneeName: data.assigneeName ?? null,
+        } as Task;
+      });
+      onSuccess(tasks);
+    },
+    err => {
+      console.error('Error fetching team tasks realtime:', err);
       if (onError) onError(err);
     },
   );
@@ -64,7 +109,9 @@ export const createTask = async (task: Omit<Task, 'id' | 'createdAt'>): Promise<
     dueDate: task.dueDate || '',
     createdAt: serverTimestamp(),
     teamId: task.teamId ?? null,
+    teamName: task.teamName ?? null,
     assigneeId: task.assigneeId ?? null,
+    assigneeName: task.assigneeName ?? null,
   };
 
   const docRef = await addDoc(tasksCollectionRef, newTaskDoc);
@@ -87,7 +134,9 @@ export const updateTask = async (
   if (updates.priority !== undefined) cleanUpdates.priority = updates.priority;
   if (updates.dueDate !== undefined) cleanUpdates.dueDate = updates.dueDate;
   if (updates.teamId !== undefined) cleanUpdates.teamId = updates.teamId;
+  if (updates.teamName !== undefined) cleanUpdates.teamName = updates.teamName;
   if (updates.assigneeId !== undefined) cleanUpdates.assigneeId = updates.assigneeId;
+  if (updates.assigneeName !== undefined) cleanUpdates.assigneeName = updates.assigneeName;
 
   await updateDoc(taskDocRef, cleanUpdates);
 };

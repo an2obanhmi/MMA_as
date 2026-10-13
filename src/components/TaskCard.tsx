@@ -156,6 +156,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </View>
       </View>
 
+      {/* Team & Assignee Badge if available */}
+      {task.teamName || task.assigneeName ? (
+        <View style={styles.assigneeRow}>
+          {task.teamName ? (
+            <View style={styles.teamTag}>
+              <Ionicons name="people-outline" size={11} color={Colors.text} />
+              <Text style={styles.teamTagText}>{task.teamName.toUpperCase()}</Text>
+            </View>
+          ) : null}
+          {task.assigneeName ? (
+            <View style={styles.assigneeTag}>
+              <Ionicons name="person-circle-outline" size={12} color={Colors.accentBlue} />
+              <Text style={styles.assigneeTagText}>@{task.assigneeName.toUpperCase()}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
       {/* Bottom Minimalist Action Bar */}
       <View style={styles.footerBar}>
         <View style={styles.idContainer}>
@@ -209,6 +227,31 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: 8,
+  },
+  assigneeRow: {
+    borderTopColor: Colors.borderMuted,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingTop: 6,
+    marginTop: 2,
+  },
+  assigneeTag: {
+    alignItems: 'center',
+    backgroundColor: '#EBF0FF',
+    borderColor: Colors.border,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  assigneeTagText: {
+    color: Colors.accentBlue,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '800',
   },
   card: {
     backgroundColor: Colors.surface,
@@ -324,6 +367,22 @@ const styles = StyleSheet.create({
   tagsRow: {
     flexDirection: 'row',
     gap: 6,
+  },
+  teamTag: {
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceSecondary,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  teamTagText: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '800',
   },
   textContainer: {
     flex: 1,

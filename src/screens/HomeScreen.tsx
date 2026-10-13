@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,13 +19,29 @@ import { useTasks } from '../hooks/useTasks';
 import { Task, TaskFilter } from '../types/task.types';
 import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
 
+import { useAuth } from '../contexts/AuthContext';
+import { getUserTeamsRealtime } from '../services/teamService';
+import { Team } from '../types/models.types';
+
 export const HomeScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
+  const { user } = useAuth();
 
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('All');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = getUserTeamsRealtime(
+      user.uid,
+      (teams) => setUserTeams(teams),
+      (err) => console.error(err)
+    );
+    return () => unsub();
+  }, [user]);
 
   const {
     tasks,
@@ -191,6 +207,7 @@ export const HomeScreen: React.FC = () => {
       <TaskFormModal
         visible={modalVisible}
         initialTask={selectedTask}
+        teams={userTeams}
         onClose={() => {
           setModalVisible(false);
           setSelectedTask(null);

@@ -11,8 +11,10 @@ export interface Task {
   priority: TaskPriority; // Default: 'Medium'
   dueDate?: string; // ISO date string or formatted date string
   createdAt?: Timestamp | FieldValue | null; // Firestore Timestamp or serverTimestamp()
-  teamId?: string | null; // Placeholder (null for Exam 1)
-  assigneeId?: string | null; // Placeholder (null for Exam 1)
+  teamId?: string | null; // Team ID link
+  teamName?: string | null; // Optional denormalized team name
+  assigneeId?: string | null; // User ID link
+  assigneeName?: string | null; // Optional denormalized user name
 }
 
 export type TaskFilter = 'All' | TaskStatus;

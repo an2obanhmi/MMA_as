@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 
 // Configuration keys read from EXPO_PUBLIC_* environment variables or default project config
 const firebaseConfig = {
@@ -15,5 +16,6 @@ const firebaseConfig = {
 // Singleton Firebase initialization pattern
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
 export default app;

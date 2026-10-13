@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: checks if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Users Collection: logged-in users can read, own user can write
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Teams Collection: logged-in users can read/create
+    match /teams/{teamId} {
+      allow read, create: if isAuthenticated();
+      allow update, delete: if isAuthenticated();
+      
+      // Real-time Chat Messages Subcollection: teams/{teamId}/messages/{messageId}
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // Team Members Collection: links users to teams
+    match /teamMembers/{memberId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Tasks Collection: logged-in team members can read/write tasks
+    match /tasks/{taskId} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

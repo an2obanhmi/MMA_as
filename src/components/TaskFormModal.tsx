@@ -16,9 +16,13 @@ import { Task, TaskPriority, TaskStatus } from '../types/task.types';
 import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
 import { DATE_PRESETS, formatDueDateDisplay, getLocalDateString } from '../utils/dateUtils';
 
+import { TeamMember, Team } from '../types/models.types';
+
 interface TaskFormModalProps {
   visible: boolean;
   initialTask?: Task | null;
+  teamMembers?: TeamMember[];
+  teams?: Team[];
   onClose: () => void;
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
 }
@@ -38,6 +42,8 @@ const PRIORITY_OPTIONS: { key: TaskPriority; label: string }[] = [
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   visible,
   initialTask,
+  teamMembers,
+  teams,
   onClose,
   onSubmit,
 }) => {
@@ -46,6 +52,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [status, setStatus] = useState<TaskStatus>('To Do');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [dueDate, setDueDate] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
+  const [selectedAssigneeName, setSelectedAssigneeName] = useState<string | null>(null);
 
   const [titleError, setTitleError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
@@ -58,6 +68,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       setStatus(initialTask.status || 'To Do');
       setPriority(initialTask.priority || 'Medium');
       setDueDate(initialTask.dueDate || '');
+      setSelectedTeamId(initialTask.teamId ?? null);
+      setSelectedTeamName(initialTask.teamName ?? null);
+      setSelectedAssigneeId(initialTask.assigneeId ?? null);
+      setSelectedAssigneeName(initialTask.assigneeName ?? null);
     } else {
       resetForm();
     }
@@ -71,6 +85,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     setStatus('To Do');
     setPriority('Medium');
     setDueDate('');
+    setSelectedTeamId(null);
+    setSelectedTeamName(null);
+    setSelectedAssigneeId(null);
+    setSelectedAssigneeName(null);
     setTitleError(null);
     setDateError(null);
   };
@@ -122,6 +140,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         status,
         priority,
         dueDate: trimmedDueDate,
+        teamId: selectedTeamId,
+        teamName: selectedTeamName,
+        assigneeId: selectedAssigneeId,
+        assigneeName: selectedAssigneeName,
       });
       resetForm();
       onClose();
@@ -221,32 +243,113 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </View>
             </View>
 
-            {/* Priority Select */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>PRIORITY</Text>
-              <View style={styles.segmentRow}>
-                {PRIORITY_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt.key}
-                    activeOpacity={0.8}
-                    style={[
-                      styles.segmentBtn,
-                      priority === opt.key && styles.segmentBtnActive,
-                    ]}
-                    onPress={() => setPriority(opt.key)}
-                  >
-                    <Text
+            {/* Team Workspace Selection (if teams list is provided) */}
+            {teams && teams.length > 0 ? (
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>WORKSPACE / TEAM</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={styles.presetsRow}>
+                    <TouchableOpacity
                       style={[
-                        styles.segmentText,
-                        priority === opt.key && styles.segmentTextActive,
+                        styles.presetChip,
+                        selectedTeamId === null && styles.presetChipActive,
                       ]}
+                      onPress={() => {
+                        setSelectedTeamId(null);
+                        setSelectedTeamName(null);
+                      }}
                     >
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.presetChipText,
+                          selectedTeamId === null && styles.presetChipTextActive,
+                        ]}
+                      >
+                        [PERSONAL / NO TEAM]
+                      </Text>
+                    </TouchableOpacity>
+                    {teams.map((t) => (
+                      <TouchableOpacity
+                        key={t.id}
+                        style={[
+                          styles.presetChip,
+                          selectedTeamId === t.id && styles.presetChipActive,
+                        ]}
+                        onPress={() => {
+                          setSelectedTeamId(t.id);
+                          setSelectedTeamName(t.name);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.presetChipText,
+                            selectedTeamId === t.id && styles.presetChipTextActive,
+                          ]}
+                        >
+                          {t.name.toUpperCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
               </View>
-            </View>
+            ) : null}
+
+            {/* Assignee Selection (if teamMembers is available) */}
+            {teamMembers && teamMembers.length > 0 ? (
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>ASSIGN TO OPERATOR</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={styles.presetsRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.presetChip,
+                        selectedAssigneeId === null && styles.presetChipActive,
+                      ]}
+                      onPress={() => {
+                        setSelectedAssigneeId(null);
+                        setSelectedAssigneeName(null);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.presetChipText,
+                          selectedAssigneeId === null && styles.presetChipTextActive,
+                        ]}
+                      >
+                        [UNASSIGNED]
+                      </Text>
+                    </TouchableOpacity>
+                    {teamMembers.map((m) => {
+                      const isAssigned = selectedAssigneeId === m.userId;
+                      const displayName = m.userName || m.userEmail || 'User';
+                      return (
+                        <TouchableOpacity
+                          key={m.userId}
+                          style={[
+                            styles.presetChip,
+                            isAssigned && styles.presetChipActive,
+                          ]}
+                          onPress={() => {
+                            setSelectedAssigneeId(m.userId);
+                            setSelectedAssigneeName(displayName);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.presetChipText,
+                              isAssigned && styles.presetChipTextActive,
+                            ]}
+                          >
+                            @{displayName.toUpperCase()}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
 
             {/* Due Date & Quick Presets */}
             <View style={styles.fieldContainer}>
