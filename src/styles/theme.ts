@@ -1,34 +1,44 @@
+import { Platform } from 'react-native';
+
 export const Colors = {
-  primary: '#2563EB', // Blue
-  primaryDark: '#1D4ED8',
-  primaryLight: '#DBEAFE',
-  secondary: '#64748B', // Slate
-  background: '#F8FAFC', // Off-white / light slate
-  surface: '#FFFFFF',
-  card: '#FFFFFF',
-  text: '#0F172A',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  error: '#EF4444',
-  success: '#10B981',
-  warning: '#F59E0B',
+  // Backgrounds
+  background: '#F7F7F5',       // Warm crafted off-white
+  surface: '#FFFFFF',          // Clean white container
+  surfaceSecondary: '#EFEFEA', // Light contrasting surface
+  darkObsidian: '#0F1012',     // Dark fallback / pure black elements
+
+  // Text & Inks
+  text: '#111111',             // Deep charcoal printer ink
+  textSecondary: '#555555',    // Muted dark
+  textMuted: '#888888',        // Secondary annotation ink
+  textInverted: '#F7F7F5',
+
+  // Brutalist Line & Hard Shadows
+  border: '#111111',           // Hard boundary
+  borderMuted: '#D8D8D3',
+  hardShadow: '#111111',
+
+  // Accent Colors (Neo-Brutalist & Editorial Pops)
+  accentElectric: '#E2F952',   // Acid Lime / Electric Yellow
+  accentBlue: '#002FA7',       // International Klein Blue
+  accentOrange: '#FF5A36',     // Raw vermilion
+  accentGreen: '#10B981',      // Emerald clean
 
   // Status Colors
-  statusTodo: '#3B82F6',
-  statusTodoBg: '#EFF6FF',
-  statusInProgress: '#F59E0B',
-  statusInProgressBg: '#FFFBEB',
+  statusTodo: '#111111',
+  statusTodoBg: '#FFFFFF',
+  statusInProgress: '#002FA7',
+  statusInProgressBg: '#EBF0FF',
   statusDone: '#10B981',
-  statusDoneBg: '#ECFDF5',
+  statusDoneBg: '#E6FBF2',
 
   // Priority Colors
-  priorityHigh: '#EF4444',
-  priorityHighBg: '#FEF2F2',
-  priorityMedium: '#F59E0B',
-  priorityMediumBg: '#FFFBEB',
-  priorityLow: '#10B981',
-  priorityLowBg: '#ECFDF5',
+  priorityHigh: '#FF5A36',
+  priorityHighBg: '#FFEBE6',
+  priorityMedium: '#111111',
+  priorityMediumBg: '#EFEFEA',
+  priorityLow: '#666666',
+  priorityLowBg: '#F3F3F0',
 };
 
 export const Spacing = {
@@ -37,24 +47,34 @@ export const Spacing = {
   md: 16,
   lg: 24,
   xl: 32,
+  xxl: 40,
 };
 
-export const Typography = {
-  fontFamily: undefined, // Default system font
-  title: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '500' as const,
-  },
-  body: {
-    fontSize: 14,
-    fontWeight: '400' as const,
-  },
-  caption: {
-    fontSize: 12,
-    fontWeight: '400' as const,
-  },
+export const Fonts = {
+  mono: Platform.select({
+    ios: 'Courier',
+    android: 'monospace',
+    default: 'monospace',
+  }),
+  display: Platform.select({
+    ios: 'Helvetica Neue',
+    android: 'sans-serif-black',
+    default: 'sans-serif',
+  }),
+};
+
+export const BrutalShadow = {
+  shadowColor: '#111111',
+  shadowOffset: { width: 3, height: 3 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 4,
+};
+
+export const BrutalShadowSmall = {
+  shadowColor: '#111111',
+  shadowOffset: { width: 2, height: 2 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 2,
 };

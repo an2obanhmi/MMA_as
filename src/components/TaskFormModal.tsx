@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskPriority, TaskStatus } from '../types/task.types';
-import { Colors, Spacing } from '../styles/theme';
+import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
 
 interface TaskFormModalProps {
   visible: boolean;
@@ -22,8 +22,17 @@ interface TaskFormModalProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
 }
 
-const STATUS_OPTIONS: TaskStatus[] = ['To Do', 'In Progress', 'Done'];
-const PRIORITY_OPTIONS: TaskPriority[] = ['Low', 'Medium', 'High'];
+const STATUS_OPTIONS: { key: TaskStatus; label: string }[] = [
+  { key: 'To Do', label: 'TODO' },
+  { key: 'In Progress', label: 'IN_FLIGHT' },
+  { key: 'Done', label: 'RESOLVED' },
+];
+
+const PRIORITY_OPTIONS: { key: TaskPriority; label: string }[] = [
+  { key: 'Low', label: 'LOW' },
+  { key: 'Medium', label: 'MED' },
+  { key: 'High', label: 'HIGH' },
+];
 
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   visible,
@@ -64,7 +73,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      setTitleError('Task title is required');
+      setTitleError('// ERROR: TITLE IS MANDATORY');
       return;
     }
 
@@ -94,27 +103,37 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.modalOverlay}
       >
-        <View style={styles.modalContent}>
+        <View style={styles.modalSheet}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{isEditing ? 'Edit Task' : 'Create Task'}</Text>
-            <TouchableOpacity onPress={onClose} disabled={submitting} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            <View>
+              <Text style={styles.headerMonoTag}>
+                {isEditing ? '[OPERATION // EDIT]' : '[OPERATION // CREATE]'}
+              </Text>
+              <Text style={styles.headerTitle}>
+                {isEditing ? 'EDIT_TASK.' : 'NEW_TASK.'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={onClose}
+              disabled={submitting}
+              style={styles.closeBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close" size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.formBody} showsVerticalScrollIndicator={false}>
             {/* Title Input */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>
-                Title <Text style={styles.requiredMark}>*</Text>
-              </Text>
+              <Text style={styles.fieldLabel}>TITLE*</Text>
               <TextInput
                 style={[styles.input, titleError ? styles.inputError : null]}
-                placeholder="e.g. Design UI Mockups"
+                placeholder="DEFINE ACTION ITEM..."
                 placeholderTextColor={Colors.textMuted}
                 value={title}
-                onChangeText={text => {
+                onChangeText={(text) => {
                   setTitle(text);
                   if (titleError) setTitleError(null);
                 }}
@@ -124,10 +143,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
             {/* Description Input */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.fieldLabel}>NOTES / DETAILS</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Provide task details or subtasks..."
+                placeholder="SPECIFY CONTEXT OR SUBTASKS..."
                 placeholderTextColor={Colors.textMuted}
                 value={description}
                 onChangeText={setDescription}
@@ -137,40 +156,54 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               />
             </View>
 
-            {/* Status Selection */}
+            {/* Status Select */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Status</Text>
-              <View style={styles.chipRow}>
-                {STATUS_OPTIONS.map(opt => (
+              <Text style={styles.fieldLabel}>STATUS</Text>
+              <View style={styles.segmentRow}>
+                {STATUS_OPTIONS.map((opt) => (
                   <TouchableOpacity
-                    key={opt}
-                    style={[styles.chip, status === opt ? styles.chipSelected : null]}
-                    onPress={() => setStatus(opt)}
+                    key={opt.key}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.segmentBtn,
+                      status === opt.key && styles.segmentBtnActive,
+                    ]}
+                    onPress={() => setStatus(opt.key)}
                   >
                     <Text
-                      style={[styles.chipText, status === opt ? styles.chipTextSelected : null]}
+                      style={[
+                        styles.segmentText,
+                        status === opt.key && styles.segmentTextActive,
+                      ]}
                     >
-                      {opt}
+                      {opt.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
 
-            {/* Priority Selection */}
+            {/* Priority Select */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Priority</Text>
-              <View style={styles.chipRow}>
-                {PRIORITY_OPTIONS.map(opt => (
+              <Text style={styles.fieldLabel}>PRIORITY</Text>
+              <View style={styles.segmentRow}>
+                {PRIORITY_OPTIONS.map((opt) => (
                   <TouchableOpacity
-                    key={opt}
-                    style={[styles.chip, priority === opt ? styles.chipSelected : null]}
-                    onPress={() => setPriority(opt)}
+                    key={opt.key}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.segmentBtn,
+                      priority === opt.key && styles.segmentBtnActive,
+                    ]}
+                    onPress={() => setPriority(opt.key)}
                   >
                     <Text
-                      style={[styles.chipText, priority === opt ? styles.chipTextSelected : null]}
+                      style={[
+                        styles.segmentText,
+                        priority === opt.key && styles.segmentTextActive,
+                      ]}
                     >
-                      {opt}
+                      {opt.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -179,10 +212,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
             {/* Due Date */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Due Date</Text>
+              <Text style={styles.fieldLabel}>DEADLINE / SCHEDULE</Text>
               <TextInput
                 style={styles.input}
-                placeholder="YYYY-MM-DD (e.g. 2026-10-20)"
+                placeholder="YYYY-MM-DD (E.G. 2026-10-25)"
                 placeholderTextColor={Colors.textMuted}
                 value={dueDate}
                 onChangeText={setDueDate}
@@ -190,25 +223,28 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             </View>
           </ScrollView>
 
-          {/* Action Buttons */}
+          {/* Action Row */}
           <View style={styles.actionRow}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={styles.cancelBtn}
               onPress={onClose}
               disabled={submitting}
+              activeOpacity={0.7}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>DISCARD</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={[styles.button, styles.submitButton]}
+              style={styles.submitBtn}
               onPress={handleSave}
               disabled={submitting}
+              activeOpacity={0.8}
             >
               {submitting ? (
-                <ActivityIndicator color={Colors.surface} size="small" />
+                <ActivityIndicator color={Colors.text} size="small" />
               ) : (
-                <Text style={styles.submitButtonText}>
-                  {isEditing ? 'Save Changes' : 'Create Task'}
+                <Text style={styles.submitBtnText}>
+                  {isEditing ? 'COMMIT CHANGES' : 'CREATE TASK +'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -222,128 +258,146 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 const styles = StyleSheet.create({
   actionRow: {
     borderTopColor: Colors.border,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     flexDirection: 'row',
     gap: Spacing.md,
-    marginTop: Spacing.sm,
     paddingTop: Spacing.md,
   },
-  button: {
+  cancelBtn: {
     alignItems: 'center',
-    borderRadius: 8,
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 2,
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
-  cancelButton: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.border,
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    color: Colors.textSecondary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  chip: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    paddingVertical: 8,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  chipSelected: {
-    backgroundColor: Colors.primaryLight,
-    borderColor: Colors.primary,
-  },
-  chipText: {
-    color: Colors.textSecondary,
+  cancelBtnText: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
     fontSize: 13,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  chipTextSelected: {
-    color: Colors.primaryDark,
-    fontWeight: '700',
-  },
-  closeButton: {
-    padding: Spacing.xs,
+  closeBtn: {
+    borderColor: Colors.border,
+    borderWidth: 2,
+    padding: 4,
   },
   errorText: {
-    color: Colors.error,
-    fontSize: 12,
+    color: Colors.accentOrange,
+    fontFamily: Fonts.mono,
+    fontSize: 11,
+    fontWeight: '700',
     marginTop: 4,
   },
   fieldContainer: {
     marginBottom: Spacing.md,
   },
+  fieldLabel: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
   formBody: {
-    maxHeight: 450,
+    maxHeight: 460,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderBottomColor: Colors.border,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: Spacing.md,
     paddingBottom: Spacing.sm,
   },
+  headerMonoTag: {
+    color: Colors.textSecondary,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
   headerTitle: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.display,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   input: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: 2,
     color: Colors.text,
-    fontSize: 14,
+    fontFamily: Fonts.mono,
+    fontSize: 13,
     paddingHorizontal: Spacing.md,
     paddingVertical: 10,
   },
   inputError: {
-    borderColor: Colors.error,
-  },
-  label: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  modalContent: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    padding: Spacing.lg,
-    width: '100%',
+    borderColor: Colors.accentOrange,
+    backgroundColor: '#FFF5F2',
   },
   modalOverlay: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 16, 18, 0.75)',
     flex: 1,
     justifyContent: 'flex-end',
   },
-  requiredMark: {
-    color: Colors.error,
+  modalSheet: {
+    backgroundColor: Colors.background,
+    borderColor: Colors.border,
+    borderTopWidth: 3,
+    maxHeight: '92%',
+    padding: Spacing.lg,
+    width: '100%',
   },
-  submitButton: {
-    backgroundColor: Colors.primary,
+  segmentBtn: {
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 1.5,
+    flex: 1,
+    paddingVertical: 10,
   },
-  submitButtonText: {
-    color: Colors.surface,
-    fontSize: 15,
-    fontWeight: '700',
+  segmentBtnActive: {
+    backgroundColor: Colors.text,
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  segmentText: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  segmentTextActive: {
+    color: Colors.accentElectric,
+  },
+  submitBtn: {
+    alignItems: 'center',
+    backgroundColor: Colors.accentElectric,
+    borderColor: Colors.border,
+    borderWidth: 2,
+    flex: 2,
+    justifyContent: 'center',
+    paddingVertical: 14,
+    ...BrutalShadow,
+  },
+  submitBtnText: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 76,
   },
 });

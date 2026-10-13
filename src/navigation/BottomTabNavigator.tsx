@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TeamsScreen } from '../screens/TeamsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { Colors } from '../styles/theme';
+import { Colors, Fonts } from '../styles/theme';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -20,19 +20,21 @@ export const BottomTabNavigator: React.FC = () => {
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.secondary,
+        tabBarActiveTintColor: Colors.text,
+        tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
+          backgroundColor: Colors.background,
           borderTopColor: Colors.border,
-          borderTopWidth: 1,
-          height: 60,
+          borderTopWidth: 2,
+          height: 64,
           paddingBottom: 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
+          fontFamily: Fonts.mono,
+          fontSize: 10,
+          fontWeight: '800',
+          letterSpacing: 0.5,
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
@@ -53,21 +55,21 @@ export const BottomTabNavigator: React.FC = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Tasks',
+          tabBarLabel: 'TASKS',
         }}
       />
       <Tab.Screen
         name="Teams"
         component={TeamsScreen}
         options={{
-          tabBarLabel: 'Teams',
+          tabBarLabel: 'TEAMS',
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: 'PROFILE',
         }}
       />
     </Tab.Navigator>

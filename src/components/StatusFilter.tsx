@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { TaskFilter } from '../types/task.types';
-import { Colors, Spacing } from '../styles/theme';
+import { Colors, Spacing, Fonts, BrutalShadowSmall } from '../styles/theme';
 
 interface StatusFilterProps {
   activeFilter: TaskFilter;
@@ -9,7 +9,12 @@ interface StatusFilterProps {
   counts: Record<TaskFilter, number>;
 }
 
-const FILTER_ITEMS: TaskFilter[] = ['All', 'To Do', 'In Progress', 'Done'];
+const FILTER_ITEMS: { key: TaskFilter; label: string }[] = [
+  { key: 'All', label: 'ALL' },
+  { key: 'To Do', label: 'PENDING' },
+  { key: 'In Progress', label: 'IN_FLIGHT' },
+  { key: 'Done', label: 'RESOLVED' },
+];
 
 export const StatusFilter: React.FC<StatusFilterProps> = ({
   activeFilter,
@@ -23,20 +28,39 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollList}
       >
-        {FILTER_ITEMS.map(filter => {
-          const isSelected = activeFilter === filter;
+        {FILTER_ITEMS.map((item) => {
+          const isSelected = activeFilter === item.key;
           return (
             <TouchableOpacity
-              key={filter}
-              style={[styles.filterChip, isSelected && styles.filterChipActive]}
-              onPress={() => onSelectFilter(filter)}
+              key={item.key}
+              activeOpacity={0.8}
+              style={[
+                styles.chip,
+                isSelected ? styles.chipSelected : styles.chipUnselected,
+              ]}
+              onPress={() => onSelectFilter(item.key)}
             >
-              <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                {filter}
+              <Text
+                style={[
+                  styles.chipLabel,
+                  isSelected ? styles.chipLabelSelected : styles.chipLabelUnselected,
+                ]}
+              >
+                {item.label}
               </Text>
-              <View style={[styles.badge, isSelected && styles.badgeActive]}>
-                <Text style={[styles.badgeText, isSelected && styles.badgeTextActive]}>
-                  {counts[filter] || 0}
+              <View
+                style={[
+                  styles.countBadge,
+                  isSelected ? styles.countBadgeSelected : styles.countBadgeUnselected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.countText,
+                    isSelected ? styles.countTextSelected : styles.countTextUnselected,
+                  ]}
+                >
+                  {counts[item.key] || 0}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -48,50 +72,65 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
 };
 
 const styles = StyleSheet.create({
-  badge: {
-    backgroundColor: Colors.border,
-    borderRadius: 10,
-    marginLeft: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+  chip: {
+    alignItems: 'center',
+    borderColor: Colors.border,
+    borderWidth: 2,
+    flexDirection: 'row',
+    gap: 8,
+    marginRight: Spacing.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  badgeActive: {
-    backgroundColor: Colors.primaryDark,
+  chipLabel: {
+    fontFamily: Fonts.mono,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  badgeText: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
+  chipLabelSelected: {
+    color: Colors.text,
   },
-  badgeTextActive: {
-    color: Colors.surface,
+  chipLabelUnselected: {
+    color: Colors.text,
+  },
+  chipSelected: {
+    backgroundColor: Colors.accentElectric,
+    ...BrutalShadowSmall,
+  },
+  chipUnselected: {
+    backgroundColor: Colors.surface,
   },
   container: {
+    borderBottomColor: Colors.borderMuted,
+    borderBottomWidth: 1,
     paddingVertical: Spacing.sm,
   },
-  filterChip: {
+  countBadge: {
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginRight: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    minWidth: 20,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
   },
-  filterChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+  countBadgeSelected: {
+    backgroundColor: Colors.text,
   },
-  filterText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
+  countBadgeUnselected: {
+    backgroundColor: Colors.surfaceSecondary,
   },
-  filterTextActive: {
-    color: Colors.surface,
-    fontWeight: '600',
+  countText: {
+    fontFamily: Fonts.mono,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  countTextSelected: {
+    color: Colors.accentElectric,
+  },
+  countTextUnselected: {
+    color: Colors.text,
   },
   scrollList: {
     paddingHorizontal: Spacing.md,
