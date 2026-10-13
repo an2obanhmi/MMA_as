@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Task, TaskFilter } from '../types/task.types';
 import { getTasksRealtime, createTask, updateTask, deleteTask } from '../services/taskService';
 
-export const useTasks = (activeFilter: TaskFilter = 'All') => {
+export const useTasks = (activeFilter: TaskFilter = 'All', userTeamIds: string[] = []) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,15 +72,22 @@ export const useTasks = (activeFilter: TaskFilter = 'All') => {
     }, 600);
   }, []);
 
-  // Filter tasks based on active filter
-  const filteredTasks = tasks.filter(task => {
+  // Filter tasks: include personal tasks (no teamId) OR tasks belonging to user's teams
+  const userAccessibleTasks = tasks.filter(task => {
+    if (!task.teamId) return true; // Personal task
+    if (userTeamIds.length === 0) return true; // Show all if team list not ready
+    return userTeamIds.includes(task.teamId);
+  });
+
+  // Filter tasks based on active filter status
+  const filteredTasks = userAccessibleTasks.filter(task => {
     if (activeFilter === 'All') return true;
     return task.status === activeFilter;
   });
 
   return {
     tasks: filteredTasks,
-    allTasks: tasks,
+    allTasks: userAccessibleTasks,
     loading,
     error,
     refreshing,

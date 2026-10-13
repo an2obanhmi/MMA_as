@@ -43,6 +43,8 @@ export const HomeScreen: React.FC = () => {
     return () => unsub();
   }, [user]);
 
+  const userTeamIds = userTeams.map((t) => t.id);
+
   const {
     tasks,
     allTasks,
@@ -53,7 +55,7 @@ export const HomeScreen: React.FC = () => {
     createTask,
     updateTask,
     deleteTask,
-  } = useTasks(activeFilter);
+  } = useTasks(activeFilter, userTeamIds);
 
   // Completed & Total metrics
   const totalCount = allTasks.length;
