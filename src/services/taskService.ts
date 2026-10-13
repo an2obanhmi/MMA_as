@@ -79,7 +79,7 @@ export const updateTask = async (
   updates: Partial<Omit<Task, 'id' | 'createdAt'>>,
 ): Promise<void> => {
   const taskDocRef = doc(db, COLLECTION_NAME, taskId);
-  const cleanUpdates: Record<string, any> = {};
+  const cleanUpdates: Partial<Task> = {};
 
   if (updates.title !== undefined) cleanUpdates.title = updates.title.trim();
   if (updates.description !== undefined) cleanUpdates.description = updates.description.trim();

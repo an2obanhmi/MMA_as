@@ -29,9 +29,10 @@ export const useTasks = (activeFilter: TaskFilter = 'All') => {
     try {
       setError(null);
       await createTask(task);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating task:', err);
-      setError(err.message || 'Could not create task');
+      const message = err instanceof Error ? err.message : 'Could not create task';
+      setError(message);
       throw err;
     }
   }, []);
@@ -41,9 +42,10 @@ export const useTasks = (activeFilter: TaskFilter = 'All') => {
       try {
         setError(null);
         await updateTask(taskId, updates);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error updating task:', err);
-        setError(err.message || 'Could not update task');
+        const message = err instanceof Error ? err.message : 'Could not update task';
+        setError(message);
         throw err;
       }
     },
@@ -54,9 +56,10 @@ export const useTasks = (activeFilter: TaskFilter = 'All') => {
     try {
       setError(null);
       await deleteTask(taskId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting task:', err);
-      setError(err.message || 'Could not delete task');
+      const message = err instanceof Error ? err.message : 'Could not delete task';
+      setError(message);
       throw err;
     }
   }, []);
