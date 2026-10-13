@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskPriority, TaskStatus } from '../types/task.types';
 import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
+import { formatDueDateDisplay } from '../utils/dateUtils';
 
 interface TaskCardProps {
   task: Task;
@@ -18,6 +19,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
 }) => {
   const isDone = task.status === 'Done';
+  const dueInfo = formatDueDateDisplay(task.dueDate, isDone);
 
   const getPriorityStyle = (priority: TaskPriority) => {
     switch (priority) {
@@ -58,7 +60,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const priorityMeta = getPriorityStyle(task.priority);
 
   return (
-    <View style={[styles.card, isDone && styles.cardDone]}>
+    <View
+      style={[
+        styles.card,
+        isDone && styles.cardDone,
+        dueInfo?.status === 'overdue' && !isDone && styles.cardOverdue,
+      ]}
+    >
       {/* Top Status & Priority Bar */}
       <View style={styles.topBar}>
         <View style={styles.tagsRow}>
@@ -87,11 +95,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </View>
         </View>
 
-        {/* Date Stamp */}
-        {task.dueDate ? (
-          <View style={styles.dateStamp}>
-            <Ionicons name="time-outline" size={12} color={Colors.textSecondary} />
-            <Text style={styles.dateText}>{task.dueDate}</Text>
+        {/* Due Date Relative Pill */}
+        {dueInfo ? (
+          <View
+            style={[
+              styles.dueBadge,
+              { backgroundColor: dueInfo.badgeBg },
+              dueInfo.status === 'overdue' && styles.dueBadgeOverdue,
+            ]}
+          >
+            <Ionicons
+              name={
+                dueInfo.status === 'overdue'
+                  ? 'alert-circle'
+                  : dueInfo.status === 'today'
+                  ? 'flash'
+                  : 'time-outline'
+              }
+              size={12}
+              color={dueInfo.badgeText}
+            />
+            <Text style={[styles.dueBadgeText, { color: dueInfo.badgeText }]}>
+              {dueInfo.label}
+            </Text>
           </View>
         ) : null}
       </View>
@@ -135,6 +161,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <View style={styles.idContainer}>
           <Text style={styles.idText}>
             ID#{task.id?.substring(0, 6).toUpperCase() || 'NEW'}
+            {task.dueDate ? ` // ${task.dueDate}` : ''}
           </Text>
         </View>
 
@@ -196,6 +223,10 @@ const styles = StyleSheet.create({
     borderColor: '#AAAAAA',
     shadowOpacity: 0.2,
   },
+  cardOverdue: {
+    borderColor: Colors.accentOrange,
+    borderLeftWidth: 5,
+  },
   checkbox: {
     alignItems: 'center',
     backgroundColor: Colors.surface,
@@ -216,17 +247,6 @@ const styles = StyleSheet.create({
     gap: 12,
     marginVertical: Spacing.sm,
   },
-  dateStamp: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dateText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-  },
   description: {
     color: Colors.textSecondary,
     fontSize: 13,
@@ -234,6 +254,24 @@ const styles = StyleSheet.create({
   },
   descriptionDone: {
     color: Colors.textMuted,
+  },
+  dueBadge: {
+    alignItems: 'center',
+    borderColor: Colors.border,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  dueBadgeOverdue: {
+    borderColor: Colors.accentOrange,
+  },
+  dueBadgeText: {
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   footerBar: {
     alignItems: 'center',

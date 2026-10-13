@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskPriority, TaskStatus } from '../types/task.types';
 import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
+import { DATE_PRESETS, formatDueDateDisplay, getLocalDateString } from '../utils/dateUtils';
 
 interface TaskFormModalProps {
   visible: boolean;
@@ -47,6 +48,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [dueDate, setDueDate] = useState('');
 
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -60,6 +62,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       resetForm();
     }
     setTitleError(null);
+    setDateError(null);
   }, [initialTask, visible]);
 
   const resetForm = () => {
@@ -69,13 +72,47 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     setPriority('Medium');
     setDueDate('');
     setTitleError(null);
+    setDateError(null);
+  };
+
+  const handleSelectPreset = (dateStr: string) => {
+    setDueDate(dateStr);
+    setDateError(null);
   };
 
   const handleSave = async () => {
+    let hasError = false;
+
     if (!title.trim()) {
       setTitleError('// ERROR: TITLE IS MANDATORY');
-      return;
+      hasError = true;
     }
+
+    // Validate dueDate format if provided
+    const trimmedDueDate = dueDate.trim();
+    if (trimmedDueDate) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(trimmedDueDate)) {
+        setDateError('// ERROR: INVALID FORMAT (USE YYYY-MM-DD)');
+        hasError = true;
+      } else {
+        const parts = trimmedDueDate.split('-');
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        const dateObj = new Date(y, m - 1, d);
+        if (
+          dateObj.getFullYear() !== y ||
+          dateObj.getMonth() !== m - 1 ||
+          dateObj.getDate() !== d
+        ) {
+          setDateError('// ERROR: CALENDAR DATE DOES NOT EXIST');
+          hasError = true;
+        }
+      }
+    }
+
+    if (hasError) return;
 
     try {
       setSubmitting(true);
@@ -84,7 +121,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         description: description.trim(),
         status,
         priority,
-        dueDate: dueDate.trim(),
+        dueDate: trimmedDueDate,
       });
       resetForm();
       onClose();
@@ -96,6 +133,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   };
 
   const isEditing = Boolean(initialTask);
+  const datePreview = formatDueDateDisplay(dueDate, false);
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -210,16 +248,80 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </View>
             </View>
 
-            {/* Due Date */}
+            {/* Due Date & Quick Presets */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>DEADLINE / SCHEDULE</Text>
+              <View style={styles.labelWithPreview}>
+                <Text style={styles.fieldLabel}>DEADLINE / SCHEDULE (YYYY-MM-DD)</Text>
+                {datePreview ? (
+                  <View
+                    style={[
+                      styles.previewBadge,
+                      { backgroundColor: datePreview.badgeBg },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.previewBadgeText,
+                        { color: datePreview.badgeText },
+                      ]}
+                    >
+                      {datePreview.label}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Quick Preset Buttons */}
+              <View style={styles.presetsRow}>
+                {DATE_PRESETS.map((p) => {
+                  const targetStr = p.getDateString();
+                  const isPresetActive = dueDate === targetStr;
+                  return (
+                    <TouchableOpacity
+                      key={p.key}
+                      style={[
+                        styles.presetChip,
+                        isPresetActive && styles.presetChipActive,
+                      ]}
+                      onPress={() => handleSelectPreset(targetStr)}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.presetChipText,
+                          isPresetActive && styles.presetChipTextActive,
+                        ]}
+                      >
+                        {p.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+                {dueDate ? (
+                  <TouchableOpacity
+                    style={styles.presetClear}
+                    onPress={() => {
+                      setDueDate('');
+                      setDateError(null);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.presetClearText}>CLEAR</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
               <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD (E.G. 2026-10-25)"
+                style={[styles.input, dateError ? styles.inputError : null]}
+                placeholder={`E.G. ${getLocalDateString()}`}
                 placeholderTextColor={Colors.textMuted}
                 value={dueDate}
-                onChangeText={setDueDate}
+                onChangeText={(text) => {
+                  setDueDate(text);
+                  if (dateError) setDateError(null);
+                }}
               />
+              {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
             </View>
           </ScrollView>
 
@@ -303,7 +405,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   formBody: {
-    maxHeight: 460,
+    maxHeight: 480,
   },
   header: {
     alignItems: 'flex-start',
@@ -340,8 +442,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   inputError: {
-    borderColor: Colors.accentOrange,
     backgroundColor: '#FFF5F2',
+    borderColor: Colors.accentOrange,
+  },
+  labelWithPreview: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
   modalOverlay: {
     backgroundColor: 'rgba(15, 16, 18, 0.75)',
@@ -352,9 +460,58 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderColor: Colors.border,
     borderTopWidth: 3,
-    maxHeight: '92%',
+    maxHeight: '94%',
     padding: Spacing.lg,
     width: '100%',
+  },
+  presetChip: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 1.5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  presetChipActive: {
+    backgroundColor: Colors.accentElectric,
+  },
+  presetChipText: {
+    color: Colors.text,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  presetChipTextActive: {
+    color: Colors.text,
+  },
+  presetClear: {
+    backgroundColor: Colors.surfaceSecondary,
+    borderColor: Colors.borderMuted,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  presetClearText: {
+    color: Colors.accentOrange,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  presetsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  previewBadge: {
+    borderColor: Colors.border,
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  previewBadgeText: {
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '800',
   },
   segmentBtn: {
     alignItems: 'center',
