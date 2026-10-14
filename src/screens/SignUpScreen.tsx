@@ -264,8 +264,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eyeBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
   },
   fieldGroup: {
     marginBottom: Spacing.md,
