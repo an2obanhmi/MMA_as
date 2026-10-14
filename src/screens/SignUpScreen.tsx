@@ -10,53 +10,77 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
+import { getFirebaseAuthErrorMessage } from '../utils/authErrorHandler';
+import { ToastBanner, ToastConfig } from '../components/ToastBanner';
 
 interface SignUpScreenProps {
-  navigation: any;
+  navigation: {
+    navigate: (screen: string) => void;
+  };
 }
 
 export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const { signup } = useAuth();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Password Visibility States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Focus tracking
+  const [nameFocused, setNameFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
+
+  // Toast notification state
+  const [toast, setToast] = useState<ToastConfig | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({ message, type });
+  };
 
   const handleSignUp = async () => {
+    // 1. Validation: Name
     if (!name.trim()) {
-      setError('// ERROR: FULL NAME IS REQUIRED');
+      showToast('Vui lòng nhập họ và tên của bạn.', 'error');
       return;
     }
-    if (!email.trim()) {
-      setError('// ERROR: EMAIL IS REQUIRED');
+
+    // 2. Validation: Email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRegex.test(email.trim())) {
+      showToast('Địa chỉ email không đúng định dạng. Vui lòng kiểm tra lại.', 'error');
       return;
     }
+
+    // 3. Validation: Password length
     if (password.length < 6) {
-      setError('// ERROR: PASSPHRASE MUST BE AT LEAST 6 CHARACTERS');
+      showToast('Mật khẩu quá ngắn (yêu cầu tối thiểu 6 ký tự).', 'error');
       return;
     }
+
+    // 4. Validation: Confirm Password match
     if (password !== confirmPassword) {
-      setError('// ERROR: PASSPHRASES DO NOT MATCH');
+      showToast('Mật khẩu xác nhận không trùng khớp. Vui lòng nhập lại.', 'error');
       return;
     }
 
     try {
-      setError(null);
       setLoading(true);
       await signup(name, email, password);
-    } catch (err: any) {
-      console.error('SignUp error:', err);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('// ERROR: EMAIL ALREADY REGISTERED');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('// ERROR: INVALID EMAIL FORMAT');
-      } else {
-        setError(`// ERROR: ${err.message || 'REGISTRATION FAILED'}`);
-      }
+      showToast('Đăng ký tài khoản thành công! Bạn có thể sử dụng ngay.', 'success');
+    } catch (err: unknown) {
+      const friendlyMsg = getFirebaseAuthErrorMessage(err);
+      showToast(friendlyMsg, 'error');
     } finally {
       setLoading(false);
     }
@@ -67,88 +91,118 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* Toast Notification Banner */}
+      <ToastBanner toast={toast} onDismiss={() => setToast(null)} />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Brand Header */}
         <View style={styles.brandBox}>
           <Text style={styles.brandMeta}>{'// NEW ENROLLMENT'}</Text>
           <Text style={styles.brandTitle}>SIGN UP.</Text>
           <Text style={styles.brandSubtitle}>
-            Create your operator identity to unlock collaborative features.
+            Thiết lập danh tính tài khoản để tham gia không gian nhóm.
           </Text>
         </View>
 
         {/* Card Form */}
         <View style={styles.formCard}>
-          <Text style={styles.formCardHeader}>[REGISTRATION PROTOCOL]</Text>
-
-          {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
+          <Text style={styles.formCardHeader}>[REGISTRATION // ĐĂNG KÝ MỚI]</Text>
 
           {/* Name input */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>OPERATOR NAME*</Text>
+            <Text style={styles.fieldLabel}>HỌ VÀ TÊN*</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Alex Vance"
+              style={[styles.input, nameFocused && styles.inputFocused]}
+              placeholder="Nguyễn Văn A"
               placeholderTextColor={Colors.textMuted}
               value={name}
-              onChangeText={(t) => {
-                setName(t);
-                if (error) setError(null);
-              }}
+              onChangeText={setName}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
             />
           </View>
 
           {/* Email input */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>WORK EMAIL*</Text>
+            <Text style={styles.fieldLabel}>EMAIL CÔNG VIỆC*</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, emailFocused && styles.inputFocused]}
               placeholder="alex@company.com"
               placeholderTextColor={Colors.textMuted}
               value={email}
-              onChangeText={(t) => {
-                setEmail(t);
-                if (error) setError(null);
-              }}
+              onChangeText={setEmail}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
               autoCapitalize="none"
               keyboardType="email-address"
             />
           </View>
 
-          {/* Password input */}
+          {/* Password input with toggle */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>PASSPHRASE (MIN 6 CHARS)*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••••••"
-              placeholderTextColor={Colors.textMuted}
-              value={password}
-              onChangeText={(t) => {
-                setPassword(t);
-                if (error) setError(null);
-              }}
-              secureTextEntry
-            />
+            <Text style={styles.fieldLabel}>MẬT KHẨU (TỐI THIỂU 6 KÝ TỰ)*</Text>
+            <View style={[styles.passwordWrapper, passwordFocused && styles.inputFocused]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="••••••••••••"
+                placeholderTextColor={Colors.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowPassword(!showPassword)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={Colors.text}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Confirm Password input */}
+          {/* Confirm Password input with toggle */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>CONFIRM PASSPHRASE*</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••••••"
-              placeholderTextColor={Colors.textMuted}
-              value={confirmPassword}
-              onChangeText={(t) => {
-                setConfirmPassword(t);
-                if (error) setError(null);
-              }}
-              secureTextEntry
-            />
+            <Text style={styles.fieldLabel}>XÁC NHẬN LẠI MẬT KHẨU*</Text>
+            <View
+              style={[
+                styles.passwordWrapper,
+                confirmPasswordFocused && styles.inputFocused,
+                confirmPassword.length > 0 &&
+                  password !== confirmPassword &&
+                  styles.inputMismatch,
+              ]}
+            >
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="••••••••••••"
+                placeholderTextColor={Colors.textMuted}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                onFocus={() => setConfirmPasswordFocused(true)}
+                onBlur={() => setConfirmPasswordFocused(false)}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={Colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+            {confirmPassword.length > 0 && password !== confirmPassword ? (
+              <Text style={styles.mismatchText}>{'// Mật khẩu xác nhận chưa trùng khớp'}</Text>
+            ) : null}
           </View>
 
           {/* Submit CTA */}
@@ -161,18 +215,18 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
             {loading ? (
               <ActivityIndicator color={Colors.text} size="small" />
             ) : (
-              <Text style={styles.submitBtnText}>CREATE OPERATOR ACCOUNT -{'>'}</Text>
+              <Text style={styles.submitBtnText}>TẠO TÀI KHOẢN MỚI -{'>'}</Text>
             )}
           </TouchableOpacity>
 
           {/* Switch to Login */}
           <View style={styles.switchRow}>
-            <Text style={styles.switchText}>ALREADY ENROLLED?</Text>
+            <Text style={styles.switchText}>ĐÃ CÓ TÀI KHOẢN?</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Login')}
               activeOpacity={0.7}
             >
-              <Text style={styles.switchLink}>[SIGN IN HERE]</Text>
+              <Text style={styles.switchLink}>[ĐĂNG NHẬP TẠI ĐÂY]</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -195,7 +249,7 @@ const styles = StyleSheet.create({
   },
   brandSubtitle: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
     marginTop: 4,
   },
   brandTitle: {
@@ -209,18 +263,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     flex: 1,
   },
-  errorBox: {
-    backgroundColor: '#FFEBE6',
-    borderColor: Colors.accentOrange,
-    borderWidth: 1.5,
-    marginBottom: Spacing.md,
-    padding: Spacing.sm,
-  },
-  errorText: {
-    color: Colors.accentOrange,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '800',
+  eyeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   fieldGroup: {
     marginBottom: Spacing.md,
@@ -257,6 +302,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingHorizontal: Spacing.md,
     paddingVertical: 12,
+  },
+  inputFocused: {
+    borderColor: Colors.accentBlue,
+    backgroundColor: '#FAFAFF',
+  },
+  inputMismatch: {
+    borderColor: Colors.accentOrange,
+    backgroundColor: '#FFF5F2',
+  },
+  mismatchText: {
+    color: Colors.accentOrange,
+    fontFamily: Fonts.mono,
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  passwordInput: {
+    color: Colors.text,
+    flex: 1,
+    fontFamily: Fonts.mono,
+    fontSize: 13,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12,
+  },
+  passwordWrapper: {
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 2,
+    flexDirection: 'row',
   },
   scrollContent: {
     flexGrow: 1,
