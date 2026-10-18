@@ -12,7 +12,7 @@ interface TaskCardProps {
   onDelete: (taskId: string) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({
+const TaskCardComponent: React.FC<TaskCardProps> = ({
   task,
   onToggleStatus,
   onEdit,
@@ -204,6 +204,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     </View>
   );
 };
+
+export const TaskCard = React.memo<TaskCardProps>(
+  TaskCardComponent,
+  (prev, next) =>
+    prev.task.id === next.task.id &&
+    prev.task.title === next.task.title &&
+    prev.task.description === next.task.description &&
+    prev.task.status === next.task.status &&
+    prev.task.priority === next.task.priority &&
+    prev.task.dueDate === next.task.dueDate &&
+    prev.task.teamId === next.task.teamId &&
+    prev.task.assigneeId === next.task.assigneeId &&
+    prev.task.assigneeName === next.task.assigneeName
+);
 
 const styles = StyleSheet.create({
   actionBtn: {

@@ -117,6 +117,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id || Math.random().toString()}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS !== 'web'}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           renderItem={({ item }) => {
             const isMe = item.senderId === user?.uid;

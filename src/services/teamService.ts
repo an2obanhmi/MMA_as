@@ -8,6 +8,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   onSnapshot,
   serverTimestamp,
   Unsubscribe,
@@ -174,7 +175,8 @@ export const getTeamMessagesRealtime = (
   onError?: (err: Error) => void
 ): Unsubscribe => {
   const messagesRef = collection(db, TEAMS_COLLECTION, teamId, 'messages');
-  const q = query(messagesRef, orderBy('createdAt', 'asc'));
+  // Limit to 60 most recent messages to protect bandwidth and avoid read fee explosion
+  const q = query(messagesRef, orderBy('createdAt', 'asc'), limit(60));
 
   return onSnapshot(
     q,
@@ -192,7 +194,7 @@ export const getTeamMessagesRealtime = (
 };
 
 /**
- * Sends a chat message to teams/{teamId}/messages
+ * Sends a chat message to teams/{teamId}/messages with length validation
  */
 export const sendChatMessage = async (
   teamId: string,
@@ -200,12 +202,17 @@ export const sendChatMessage = async (
   senderName: string,
   text: string
 ): Promise<void> => {
-  if (!text.trim()) return;
+  const sanitizedText = text.trim();
+  if (!sanitizedText) return;
+  if (sanitizedText.length > 1000) {
+    throw new Error('Nội dung tin nhắn không được vượt quá 1000 ký tự.');
+  }
+
   const messagesRef = collection(db, TEAMS_COLLECTION, teamId, 'messages');
   await addDoc(messagesRef, {
     senderId,
     senderName,
-    text: text.trim(),
+    text: sanitizedText,
     createdAt: serverTimestamp(),
   });
 };

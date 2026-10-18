@@ -2,34 +2,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function: checks if user is authenticated
+    // Helper function: kiểm tra người dùng đã đăng nhập hay chưa
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Users Collection: logged-in users can read, own user can write
+    // Users: Chỉ người dùng đó mới có quyền sửa đổi hồ sơ cá nhân của mình
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Teams Collection: logged-in users can read/create
+    // Teams: Chỉ chủ sở hữu (ownerId) mới được phép chỉnh sửa hoặc giải tán nhóm
     match /teams/{teamId} {
       allow read, create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        resource == null || resource.data.ownerId == request.auth.uid
+      );
       
-      // Real-time Chat Messages Subcollection: teams/{teamId}/messages/{messageId}
+      // Subcollection Chat Messages: Chặn giả mạo người gửi (senderId phải trùng auth.uid)
       match /messages/{messageId} {
-        allow read, write: if isAuthenticated();
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && (
+          request.resource.data.senderId == request.auth.uid &&
+          request.resource.data.text is string &&
+          request.resource.data.text.size() <= 1000
+        );
+        allow update, delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;
       }
     }
 
-    // Team Members Collection: links users to teams
+    // Team Members: Cho phép đọc và tham gia nhóm, thành viên có thể tự rời nhóm
     match /teamMembers/{memberId} {
-      allow read, write: if isAuthenticated();
+      allow read, create: if isAuthenticated();
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid
+      );
     }
 
-    // Tasks Collection: logged-in team members can read/write tasks
+    // Tasks: Đọc và ghi các nhiệm vụ trong hệ thống
     match /tasks/{taskId} {
       allow read, write: if isAuthenticated();
     }
