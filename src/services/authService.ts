@@ -56,3 +56,43 @@ export const sendResetPasswordEmail = async (rawEmail: string): Promise<void> =>
     }
   }
 };
+
+/**
+ * Updates user profile name and/or avatarUrl in Firebase Authentication and Firestore users doc
+ */
+export const updateUserProfileData = async (
+  uid: string,
+  updates: { name?: string; avatarUrl?: string },
+): Promise<void> => {
+  if (!uid) throw new Error('User ID is required');
+
+  const cleanName = updates.name !== undefined ? updates.name.trim() : undefined;
+  if (cleanName !== undefined && (!cleanName || cleanName.length > 30)) {
+    throw new Error('Tên hiển thị không được để trống và tối đa 30 ký tự.');
+  }
+
+  // 1. Firebase Auth user update
+  if (auth.currentUser) {
+    const authProfileUpdates: { displayName?: string; photoURL?: string } = {};
+    if (cleanName !== undefined) authProfileUpdates.displayName = cleanName;
+    if (updates.avatarUrl !== undefined) authProfileUpdates.photoURL = updates.avatarUrl;
+
+    if (Object.keys(authProfileUpdates).length > 0) {
+      const { updateProfile } = await import('firebase/auth');
+      await updateProfile(auth.currentUser, authProfileUpdates);
+    }
+  }
+
+  // 2. Firestore document update
+  const { doc, updateDoc } = await import('firebase/firestore');
+  const { db } = await import('./firebase');
+  const userDocRef = doc(db, 'users', uid);
+  const firestoreUpdates: Record<string, string> = {};
+  if (cleanName !== undefined) firestoreUpdates.name = cleanName;
+  if (updates.avatarUrl !== undefined) firestoreUpdates.avatarUrl = updates.avatarUrl;
+
+  if (Object.keys(firestoreUpdates).length > 0) {
+    await updateDoc(userDocRef, firestoreUpdates);
+  }
+};
+
