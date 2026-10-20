@@ -63,10 +63,11 @@ export const getTeamTasksRealtime = (
   onSuccess: (tasks: Task[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe => {
+  // Query by teamId only (single-field index automatically handled by Firestore)
+  // Avoids 'The query requires an index' composite index failure
   const q = query(
     tasksCollectionRef,
     where('teamId', '==', teamId),
-    orderBy('createdAt', 'desc'),
   );
 
   return onSnapshot(
@@ -88,6 +89,19 @@ export const getTeamTasksRealtime = (
           assigneeName: data.assigneeName ?? null,
         } as Task;
       });
+
+      // In-memory sort by createdAt descending (newest first)
+      const getMillis = (val: unknown): number => {
+        if (!val) return 0;
+        if (typeof val === 'object' && val !== null && 'toMillis' in val && typeof (val as { toMillis: () => number }).toMillis === 'function') {
+          return (val as { toMillis: () => number }).toMillis();
+        }
+        if (val instanceof Date) return val.getTime();
+        return 0;
+      };
+
+      tasks.sort((a, b) => getMillis(b.createdAt) - getMillis(a.createdAt));
+
       onSuccess(tasks);
     },
     err => {

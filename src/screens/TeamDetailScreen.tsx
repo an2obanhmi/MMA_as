@@ -16,12 +16,11 @@ import { TeamMember } from '../types/models.types';
 import { Task } from '../types/task.types';
 import { getTeamMembersRealtime } from '../services/teamService';
 import { getTeamTasksRealtime, createTask, updateTask, deleteTask } from '../services/taskService';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { Colors, Spacing, Fonts, BrutalShadow, BrutalShadowSmall } from '../styles/theme';
 
-interface TeamDetailScreenProps {
-  route: any;
-  navigation: any;
-}
+type TeamDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'TeamDetail'>;
 
 export const TeamDetailScreen: React.FC<TeamDetailScreenProps> = ({ route, navigation }) => {
   const { teamId, teamName } = route.params;

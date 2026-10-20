@@ -12,14 +12,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { ChatMessage } from '../types/models.types';
 import { getTeamMessagesRealtime, sendChatMessage } from '../services/teamService';
-import { Colors, Spacing, Fonts, BrutalShadow, BrutalShadowSmall } from '../styles/theme';
+import { Colors, Spacing, Fonts, BrutalShadowSmall } from '../styles/theme';
 
-interface ChatScreenProps {
-  route: any;
-  navigation: any;
-}
+type ChatScreenProps = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
   const { teamId, teamName } = route.params;
@@ -69,10 +68,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   };
 
   // Helper to format timestamp
-  const formatTime = (ts: any) => {
+  const formatTime = (ts: unknown) => {
     if (!ts) return 'NOW';
     try {
-      const date = ts.toDate ? ts.toDate() : new Date(ts);
+      if (typeof ts === 'object' && ts !== null && 'toDate' in ts && typeof (ts as { toDate: () => Date }).toDate === 'function') {
+        return (ts as { toDate: () => Date }).toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      const date = new Date(ts as string | number | Date);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';

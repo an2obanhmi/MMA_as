@@ -17,6 +17,7 @@ import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
 import { DATE_PRESETS, formatDueDateDisplay, getLocalDateString } from '../utils/dateUtils';
 
 import { TeamMember, Team } from '../types/models.types';
+import { getTeamMembersRealtime } from '../services/teamService';
 
 interface TaskFormModalProps {
   visible: boolean;
@@ -56,10 +57,38 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [selectedAssigneeName, setSelectedAssigneeName] = useState<string | null>(null);
-
   const [titleError, setTitleError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const [activeMembers, setActiveMembers] = useState<TeamMember[]>(teamMembers || []);
+
+  // Update active members if props change
+  useEffect(() => {
+    if (teamMembers && teamMembers.length > 0) {
+      setActiveMembers(teamMembers);
+    }
+  }, [teamMembers]);
+
+  // When selectedTeamId changes, dynamically fetch members of that team if teamMembers prop was not statically provided
+  useEffect(() => {
+    if (teamMembers && teamMembers.length > 0) return; // already fixed by parent screen (e.g. TeamDetailScreen)
+
+    if (!selectedTeamId) {
+      setActiveMembers([]);
+      setSelectedAssigneeId(null);
+      setSelectedAssigneeName(null);
+      return;
+    }
+
+    const unsub = getTeamMembersRealtime(
+      selectedTeamId,
+      (fetched) => setActiveMembers(fetched),
+      (err) => console.error('Error fetching members for team:', err)
+    );
+
+    return () => unsub();
+  }, [selectedTeamId, teamMembers]);
 
   useEffect(() => {
     if (initialTask) {
@@ -243,6 +272,33 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </View>
             </View>
 
+            {/* Priority Select */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>PRIORITY</Text>
+              <View style={styles.segmentRow}>
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.key}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.segmentBtn,
+                      priority === opt.key && styles.segmentBtnActive,
+                    ]}
+                    onPress={() => setPriority(opt.key)}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        priority === opt.key && styles.segmentTextActive,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             {/* Team Workspace Selection (if teams list is provided) */}
             {teams && teams.length > 0 ? (
               <View style={styles.fieldContainer}>
@@ -295,8 +351,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </View>
             ) : null}
 
-            {/* Assignee Selection (if teamMembers is available) */}
-            {teamMembers && teamMembers.length > 0 ? (
+            {/* Assignee Selection (rendered when activeMembers has users) */}
+            {activeMembers && activeMembers.length > 0 ? (
               <View style={styles.fieldContainer}>
                 <Text style={styles.fieldLabel}>ASSIGN TO OPERATOR</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -320,7 +376,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         [UNASSIGNED]
                       </Text>
                     </TouchableOpacity>
-                    {teamMembers.map((m) => {
+                    {activeMembers.map((m) => {
                       const isAssigned = selectedAssigneeId === m.userId;
                       const displayName = m.userName || m.userEmail || 'User';
                       return (

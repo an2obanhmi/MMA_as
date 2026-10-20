@@ -15,10 +15,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Team } from '../types/models.types';
 import { createTeam, joinTeam, getUserTeamsRealtime } from '../services/teamService';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { Colors, Spacing, Fonts, BrutalShadow, BrutalShadowSmall } from '../styles/theme';
 
 interface TeamsScreenProps {
-  navigation: any;
+  navigation: NativeStackNavigationProp<RootStackParamList>;
 }
 
 export const TeamsScreen: React.FC<TeamsScreenProps> = ({ navigation }) => {
@@ -72,8 +74,9 @@ export const TeamsScreen: React.FC<TeamsScreenProps> = ({ navigation }) => {
       setModalType(null);
       setTeamName('');
       setTeamDesc('');
-    } catch (err: any) {
-      setFormError(`// ERROR: ${err.message || 'COULD NOT CREATE TEAM'}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'COULD NOT CREATE TEAM';
+      setFormError(`// ERROR: ${message}`);
     } finally {
       setSubmitting(false);
     }
@@ -98,8 +101,9 @@ export const TeamsScreen: React.FC<TeamsScreenProps> = ({ navigation }) => {
       setModalType(null);
       setTeamCodeInput('');
       Alert.alert('// SUCCESS', 'Successfully joined team workspace!');
-    } catch (err: any) {
-      setFormError(`// ERROR: ${err.message || 'COULD NOT JOIN TEAM'}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'COULD NOT JOIN TEAM';
+      setFormError(`// ERROR: ${message}`);
     } finally {
       setSubmitting(false);
     }

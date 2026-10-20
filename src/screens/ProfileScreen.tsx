@@ -29,7 +29,7 @@ export const ProfileScreen: React.FC = () => {
             try {
               setLoggingOut(true);
               await logout();
-            } catch (err) {
+            } catch {
               Alert.alert('// ERROR', 'Failed to log out.');
             } finally {
               setLoggingOut(false);
