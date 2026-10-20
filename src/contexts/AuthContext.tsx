@@ -5,10 +5,10 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
+import { sendResetPasswordEmail } from '../services/authService';
 import { UserProfile } from '../types/models.types';
 
 interface AuthContextType {
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email.trim());
+    await sendResetPasswordEmail(email);
   };
 
   const logout = async () => {
