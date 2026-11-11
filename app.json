@@ -22,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1f7d41ef-5509-4281-8b51-25a6d994949c"
+      }
+    },
+    "owner": "an3obanhmis-team"
   }
 }
