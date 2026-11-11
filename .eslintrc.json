@@ -23,6 +23,7 @@
   },
   "rules": {
     "react/react-in-jsx-scope": "off",
+    "react-native/no-unused-styles": "off",
     "react-native/no-inline-styles": "warn",
     "react-native/no-color-literals": "off",
     "react-native/sort-styles": "off",

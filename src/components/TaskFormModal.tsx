@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskPriority, TaskStatus } from '../types/task.types';
-import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadow, ColorTheme } from '../styles/theme';
 import { DATE_PRESETS, formatDueDateDisplay, getLocalDateString } from '../utils/dateUtils';
 
 import { TeamMember, Team } from '../types/models.types';
@@ -48,6 +49,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('To Do');
@@ -209,7 +213,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               style={styles.closeBtn}
               activeOpacity={0.7}
             >
-              <Ionicons name="close" size={24} color={Colors.text} />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -220,7 +224,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               <TextInput
                 style={[styles.input, titleError ? styles.inputError : null]}
                 placeholder="DEFINE ACTION ITEM..."
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 value={title}
                 onChangeText={(text) => {
                   setTitle(text);
@@ -236,7 +240,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="SPECIFY CONTEXT OR SUBTASKS..."
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -473,7 +477,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               <TextInput
                 style={[styles.input, dateError ? styles.inputError : null]}
                 placeholder={`E.G. ${getLocalDateString()}`}
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 value={dueDate}
                 onChangeText={(text) => {
                   setDueDate(text);
@@ -502,7 +506,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
               activeOpacity={0.8}
             >
               {submitting ? (
-                <ActivityIndicator color={Colors.text} size="small" />
+                <ActivityIndicator color="#121212" size="small" />
               ) : (
                 <Text style={styles.submitBtnText}>
                   {isEditing ? 'COMMIT CHANGES' : 'CREATE TASK +'}
@@ -516,204 +520,206 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  actionRow: {
-    borderTopColor: Colors.border,
-    borderTopWidth: 2,
-    flexDirection: 'row',
-    gap: Spacing.md,
-    paddingTop: Spacing.md,
-  },
-  cancelBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: 14,
-  },
-  cancelBtnText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  closeBtn: {
-    borderColor: Colors.border,
-    borderWidth: 2,
-    padding: 4,
-  },
-  errorText: {
-    color: Colors.accentOrange,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  fieldContainer: {
-    marginBottom: Spacing.md,
-  },
-  fieldLabel: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  formBody: {
-    maxHeight: 480,
-  },
-  header: {
-    alignItems: 'flex-start',
-    borderBottomColor: Colors.border,
-    borderBottomWidth: 2,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-    paddingBottom: Spacing.sm,
-  },
-  headerMonoTag: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  headerTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.display,
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-  },
-  inputError: {
-    backgroundColor: '#FFF5F2',
-    borderColor: Colors.accentOrange,
-  },
-  labelWithPreview: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  modalOverlay: {
-    backgroundColor: 'rgba(15, 16, 18, 0.75)',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.border,
-    borderTopWidth: 3,
-    maxHeight: '94%',
-    padding: Spacing.lg,
-    width: '100%',
-  },
-  presetChip: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  presetChipActive: {
-    backgroundColor: Colors.accentElectric,
-  },
-  presetChipText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  presetChipTextActive: {
-    color: Colors.text,
-  },
-  presetClear: {
-    backgroundColor: Colors.surfaceSecondary,
-    borderColor: Colors.borderMuted,
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  presetClearText: {
-    color: Colors.accentOrange,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  presetsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  previewBadge: {
-    borderColor: Colors.border,
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  previewBadgeText: {
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  segmentBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  segmentBtnActive: {
-    backgroundColor: Colors.text,
-  },
-  segmentRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  segmentText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  segmentTextActive: {
-    color: Colors.accentElectric,
-  },
-  submitBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    flex: 2,
-    justifyContent: 'center',
-    paddingVertical: 14,
-    ...BrutalShadow,
-  },
-  submitBtnText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  textArea: {
-    minHeight: 76,
-  },
-});
+const createStyles = (colors: ColorTheme, isDark: boolean) =>
+  StyleSheet.create({
+    actionRow: {
+      borderTopColor: colors.border,
+      borderTopWidth: 2,
+      flexDirection: 'row',
+      gap: Spacing.md,
+      paddingTop: Spacing.md,
+    },
+    cancelBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      flex: 1,
+      justifyContent: 'center',
+      paddingVertical: 14,
+    },
+    cancelBtnText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    closeBtn: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      padding: 4,
+    },
+    errorText: {
+      color: colors.accentOrange,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '700',
+      marginTop: 4,
+    },
+    fieldContainer: {
+      marginBottom: Spacing.md,
+    },
+    fieldLabel: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1,
+      marginBottom: 6,
+    },
+    formBody: {
+      maxHeight: 480,
+    },
+    header: {
+      alignItems: 'flex-start',
+      borderBottomColor: colors.border,
+      borderBottomWidth: 2,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.md,
+      paddingBottom: Spacing.sm,
+    },
+    headerMonoTag: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+      marginBottom: 2,
+    },
+    headerTitle: {
+      color: colors.text,
+      fontFamily: Fonts.display,
+      fontSize: 24,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+    input: {
+      backgroundColor: isDark ? colors.background : colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 13,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+    },
+    inputError: {
+      backgroundColor: isDark ? '#3E1810' : '#FFF5F2',
+      borderColor: colors.accentOrange,
+    },
+    labelWithPreview: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 6,
+    },
+    modalOverlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    modalSheet: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderTopWidth: 3,
+      maxHeight: '94%',
+      padding: Spacing.lg,
+      width: '100%',
+    },
+    presetChip: {
+      backgroundColor: isDark ? colors.background : colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    presetChipActive: {
+      backgroundColor: colors.accentElectric,
+    },
+    presetChipText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    presetChipTextActive: {
+      color: '#121212',
+    },
+    presetClear: {
+      backgroundColor: colors.surfaceSecondary,
+      borderColor: colors.borderMuted,
+      borderWidth: 1,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    presetClearText: {
+      color: colors.accentOrange,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    presetsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginBottom: 8,
+    },
+    previewBadge: {
+      borderColor: colors.border,
+      borderWidth: 1,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+    },
+    previewBadgeText: {
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    segmentBtn: {
+      alignItems: 'center',
+      backgroundColor: isDark ? colors.background : colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      flex: 1,
+      paddingVertical: 10,
+    },
+    segmentBtnActive: {
+      backgroundColor: colors.text,
+    },
+    segmentRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    segmentText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '800',
+    },
+    segmentTextActive: {
+      color: isDark ? '#121212' : colors.surface,
+    },
+    submitBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      flex: 2,
+      justifyContent: 'center',
+      paddingVertical: 14,
+      ...BrutalShadow,
+    },
+    submitBtnText: {
+      color: '#121212',
+      fontFamily: Fonts.mono,
+      fontSize: 13,
+      fontWeight: '900',
+      letterSpacing: 0.5,
+    },
+    textArea: {
+      minHeight: 76,
+    },
+  });

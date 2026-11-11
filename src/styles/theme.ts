@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
+import { DefaultTheme, DarkTheme, Theme } from '@react-navigation/native';
 
-export const Colors = {
+export const LightColors = {
   // Backgrounds
   background: '#F7F7F5',       // Warm crafted off-white
   surface: '#FFFFFF',          // Clean white container
@@ -17,6 +18,7 @@ export const Colors = {
   border: '#111111',           // Hard boundary
   borderMuted: '#D8D8D3',
   hardShadow: '#111111',
+  cardShadow: '#111111',
 
   // Accent Colors (Neo-Brutalist & Editorial Pops)
   accentElectric: '#E2F952',   // Acid Lime / Electric Yellow
@@ -40,6 +42,51 @@ export const Colors = {
   priorityLow: '#666666',
   priorityLowBg: '#F3F3F0',
 };
+
+export const DarkColors: typeof LightColors = {
+  // Backgrounds
+  background: '#0F1012',       // Pure dark obsidian
+  surface: '#1A1B20',          // Deep charcoal surface container
+  surfaceSecondary: '#24262E', // Secondary dark surface
+  darkObsidian: '#000000',
+
+  // Text & Inks
+  text: '#F7F7F5',             // Crisp white text
+  textSecondary: '#A0A2AB',    // Soft muted light gray
+  textMuted: '#686B75',        // Subdued label
+  textInverted: '#111111',
+
+  // Brutalist Line & Hard Shadows
+  border: '#3F424E',           // Crisp visible boundary
+  borderMuted: '#2D2F38',
+  hardShadow: '#000000',
+  cardShadow: '#000000',
+
+  // Accent Colors (Remain vibrant Neo-Brutalist pops)
+  accentElectric: '#E2F952',   // High-voltage Lime
+  accentBlue: '#38BDF8',       // Bright Sky Blue (readable on dark)
+  accentOrange: '#FF5A36',     // Raw vermilion
+  accentGreen: '#10B981',      // Emerald clean
+
+  // Status Colors
+  statusTodo: '#F7F7F5',
+  statusTodoBg: '#24262E',
+  statusInProgress: '#38BDF8',
+  statusInProgressBg: '#132B45',
+  statusDone: '#10B981',
+  statusDoneBg: '#0F3628',
+
+  // Priority Colors
+  priorityHigh: '#FF5A36',
+  priorityHighBg: '#3E1914',
+  priorityMedium: '#F7F7F5',
+  priorityMediumBg: '#24262E',
+  priorityLow: '#A0A2AB',
+  priorityLowBg: '#1A1B20',
+};
+
+export type ColorTheme = typeof LightColors;
+export const Colors = LightColors;
 
 export const Spacing = {
   xs: 4,
@@ -78,3 +125,31 @@ export const BrutalShadowSmall = {
   shadowRadius: 0,
   elevation: 2,
 };
+
+// React Navigation Themes
+export const CustomLightTheme: Theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: LightColors.text,
+    background: LightColors.background,
+    card: LightColors.surface,
+    text: LightColors.text,
+    border: LightColors.border,
+    notification: LightColors.accentOrange,
+  },
+};
+
+export const CustomDarkTheme: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: DarkColors.text,
+    background: DarkColors.background,
+    card: DarkColors.surface,
+    text: DarkColors.text,
+    border: DarkColors.border,
+    notification: DarkColors.accentOrange,
+  },
+};
+

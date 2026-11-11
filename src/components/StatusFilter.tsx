@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { TaskFilter } from '../types/task.types';
-import { Colors, Spacing, Fonts, BrutalShadowSmall } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadowSmall, ColorTheme } from '../styles/theme';
 
 interface StatusFilterProps {
   activeFilter: TaskFilter;
@@ -21,6 +22,9 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
   onSelectFilter,
   counts,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -71,68 +75,73 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  chip: {
-    alignItems: 'center',
-    borderColor: Colors.border,
-    borderWidth: 2,
-    flexDirection: 'row',
-    gap: 8,
-    marginRight: Spacing.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  chipLabel: {
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  chipLabelSelected: {
-    color: Colors.text,
-  },
-  chipLabelUnselected: {
-    color: Colors.text,
-  },
-  chipSelected: {
-    backgroundColor: Colors.accentElectric,
-    ...BrutalShadowSmall,
-  },
-  chipUnselected: {
-    backgroundColor: Colors.surface,
-  },
-  container: {
-    borderBottomColor: Colors.borderMuted,
-    borderBottomWidth: 1,
-    paddingVertical: Spacing.sm,
-  },
-  countBadge: {
-    alignItems: 'center',
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    minWidth: 20,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-  },
-  countBadgeSelected: {
-    backgroundColor: Colors.text,
-  },
-  countBadgeUnselected: {
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  countText: {
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  countTextSelected: {
-    color: Colors.accentElectric,
-  },
-  countTextUnselected: {
-    color: Colors.text,
-  },
-  scrollList: {
-    paddingHorizontal: Spacing.md,
-  },
-});
+const createStyles = (colors: ColorTheme, _isDark: boolean) =>
+  StyleSheet.create({
+    chip: {
+      alignItems: 'center',
+      borderColor: colors.border,
+      borderWidth: 2,
+      flexDirection: 'row',
+      gap: 8,
+      marginRight: Spacing.sm,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    chipLabel: {
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    chipLabelSelected: {
+      color: '#111111',
+    },
+    chipLabelUnselected: {
+      color: colors.text,
+    },
+    chipSelected: {
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      ...BrutalShadowSmall,
+    },
+    chipUnselected: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+    },
+    container: {
+      borderBottomColor: colors.borderMuted,
+      borderBottomWidth: 1,
+      paddingVertical: Spacing.sm,
+    },
+    countBadge: {
+      alignItems: 'center',
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      justifyContent: 'center',
+      minWidth: 20,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+    },
+    countBadgeSelected: {
+      backgroundColor: '#111111',
+      borderColor: colors.border,
+    },
+    countBadgeUnselected: {
+      backgroundColor: colors.surfaceSecondary,
+      borderColor: colors.border,
+    },
+    countText: {
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    countTextSelected: {
+      color: colors.accentElectric,
+    },
+    countTextUnselected: {
+      color: colors.text,
+    },
+    scrollList: {
+      paddingHorizontal: Spacing.md,
+    },
+  });

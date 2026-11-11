@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskPriority, TaskStatus } from '../types/task.types';
-import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadow, ColorTheme } from '../styles/theme';
 import { formatDueDateDisplay } from '../utils/dateUtils';
 
 interface TaskCardProps {
@@ -18,6 +19,8 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { isDark, colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const isDone = task.status === 'Done';
   const dueInfo = formatDueDateDisplay(task.dueDate, isDone);
 
@@ -25,21 +28,21 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
     switch (priority) {
       case 'High':
         return {
-          bg: Colors.accentOrange,
+          bg: colors.accentOrange,
           color: '#FFFFFF',
           label: 'PR // HIGH',
         };
       case 'Low':
         return {
-          bg: Colors.surfaceSecondary,
-          color: Colors.text,
+          bg: colors.surfaceSecondary,
+          color: colors.text,
           label: 'PR // LOW',
         };
       case 'Medium':
       default:
         return {
-          bg: Colors.accentElectric,
-          color: Colors.text,
+          bg: colors.accentElectric,
+          color: '#111111',
           label: 'PR // MED',
         };
     }
@@ -63,7 +66,10 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
     <View
       style={[
         styles.card,
-        isDone && styles.cardDone,
+        {
+          backgroundColor: isDone ? (isDark ? colors.surfaceSecondary : colors.statusDoneBg) : colors.surface,
+          borderColor: colors.border,
+        },
         dueInfo?.status === 'overdue' && !isDone && styles.cardOverdue,
       ]}
     >
@@ -81,12 +87,14 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
           <View
             style={[
               styles.monoPillOutline,
+              { borderColor: colors.border },
               task.status === 'In Progress' && styles.statusInProgressPill,
             ]}
           >
             <Text
               style={[
                 styles.statusText,
+                { color: colors.text },
                 task.status === 'In Progress' && styles.statusInProgressText,
               ]}
             >
@@ -126,20 +134,24 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
       <View style={styles.contentRow}>
         {/* Brutalist Custom Checkbox */}
         <TouchableOpacity
-          style={[styles.checkbox, isDone && styles.checkboxDone]}
+          style={[
+            styles.checkbox,
+            { borderColor: colors.border, backgroundColor: isDone ? colors.text : colors.background },
+            isDone && styles.checkboxDone,
+          ]}
           onPress={() => onToggleStatus(task)}
           activeOpacity={0.7}
           accessibilityLabel="Toggle task completion"
         >
           {isDone ? (
-            <Ionicons name="checkmark" size={18} color={Colors.textInverted} />
+            <Ionicons name="checkmark" size={18} color={colors.textInverted} />
           ) : null}
         </TouchableOpacity>
 
         {/* Task Title & Description */}
         <View style={styles.textContainer}>
           <Text
-            style={[styles.title, isDone && styles.titleDone]}
+            style={[styles.title, { color: colors.text }, isDone && styles.titleDone]}
             numberOfLines={2}
           >
             {task.title}
@@ -147,7 +159,7 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
 
           {task.description ? (
             <Text
-              style={[styles.description, isDone && styles.descriptionDone]}
+              style={[styles.description, { color: colors.textSecondary }, isDone && styles.descriptionDone]}
               numberOfLines={3}
             >
               {task.description}
@@ -158,26 +170,26 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
 
       {/* Team & Assignee Badge if available */}
       {task.teamName || task.assigneeName ? (
-        <View style={styles.assigneeRow}>
+        <View style={[styles.assigneeRow, { borderTopColor: colors.borderMuted }]}>
           {task.teamName ? (
-            <View style={styles.teamTag}>
-              <Ionicons name="people-outline" size={11} color={Colors.text} />
-              <Text style={styles.teamTagText}>{task.teamName.toUpperCase()}</Text>
+            <View style={[styles.teamTag, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+              <Ionicons name="people-outline" size={11} color={colors.text} />
+              <Text style={[styles.teamTagText, { color: colors.text }]}>{task.teamName.toUpperCase()}</Text>
             </View>
           ) : null}
           {task.assigneeName ? (
             <View style={styles.assigneeTag}>
-              <Ionicons name="person-circle-outline" size={12} color={Colors.accentBlue} />
-              <Text style={styles.assigneeTagText}>@{task.assigneeName.toUpperCase()}</Text>
+              <Ionicons name="person-circle-outline" size={12} color={colors.accentBlue} />
+              <Text style={[styles.assigneeTagText, { color: colors.accentBlue }]}>@{task.assigneeName.toUpperCase()}</Text>
             </View>
           ) : null}
         </View>
       ) : null}
 
       {/* Bottom Minimalist Action Bar */}
-      <View style={styles.footerBar}>
+      <View style={[styles.footerBar, { borderTopColor: colors.borderMuted }]}>
         <View style={styles.idContainer}>
-          <Text style={styles.idText}>
+          <Text style={[styles.idText, { color: colors.textMuted }]}>
             ID#{task.id?.substring(0, 6).toUpperCase() || 'NEW'}
             {task.dueDate ? ` // ${task.dueDate}` : ''}
           </Text>
@@ -189,7 +201,7 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
             onPress={() => onEdit(task)}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionEditText}>[EDIT]</Text>
+            <Text style={[styles.actionEditText, { color: colors.accentBlue }]}>[EDIT]</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -197,7 +209,7 @@ const TaskCardComponent: React.FC<TaskCardProps> = ({
             onPress={() => task.id && onDelete(task.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionDeleteText}>[DELETE]</Text>
+            <Text style={[styles.actionDeleteText, { color: colors.accentOrange }]}>[DELETE]</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -219,202 +231,203 @@ export const TaskCard = React.memo<TaskCardProps>(
     prev.task.assigneeName === next.task.assigneeName
 );
 
-const styles = StyleSheet.create({
-  actionBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  actionDeleteText: {
-    color: Colors.accentOrange,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  actionEditText: {
-    color: Colors.accentBlue,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  assigneeRow: {
-    borderTopColor: Colors.borderMuted,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    paddingTop: 6,
-    marginTop: 2,
-  },
-  assigneeTag: {
-    alignItems: 'center',
-    backgroundColor: '#EBF0FF',
-    borderColor: Colors.border,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  assigneeTagText: {
-    color: Colors.accentBlue,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    marginBottom: Spacing.md,
-    padding: Spacing.md,
-    ...BrutalShadow,
-  },
-  cardDone: {
-    backgroundColor: '#F3F3F0',
-    borderColor: '#AAAAAA',
-    shadowOpacity: 0.2,
-  },
-  cardOverdue: {
-    borderColor: Colors.accentOrange,
-    borderLeftWidth: 5,
-  },
-  checkbox: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    height: 26,
-    justifyContent: 'center',
-    marginTop: 2,
-    width: 26,
-  },
-  checkboxDone: {
-    backgroundColor: Colors.text,
-    borderColor: Colors.text,
-  },
-  contentRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-    marginVertical: Spacing.sm,
-  },
-  description: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  descriptionDone: {
-    color: Colors.textMuted,
-  },
-  dueBadge: {
-    alignItems: 'center',
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  dueBadgeOverdue: {
-    borderColor: Colors.accentOrange,
-  },
-  dueBadgeText: {
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  footerBar: {
-    alignItems: 'center',
-    borderTopColor: Colors.borderMuted,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: Spacing.xs,
-    paddingTop: Spacing.sm,
-  },
-  idContainer: {
-    flexDirection: 'row',
-  },
-  idText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  monoPill: {
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  monoPillOutline: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  monoPillText: {
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  statusInProgressPill: {
-    backgroundColor: Colors.accentBlue,
-  },
-  statusInProgressText: {
-    color: '#FFFFFF',
-  },
-  statusText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  teamTag: {
-    alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  teamTagText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  titleDone: {
-    color: Colors.textMuted,
-    textDecorationLine: 'line-through',
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-});
+const createStyles = (colors: ColorTheme, isDark: boolean) =>
+  StyleSheet.create({
+    actionBtn: {
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+    },
+    actionDeleteText: {
+      color: colors.accentOrange,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    actionEditText: {
+      color: colors.accentBlue,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    assigneeRow: {
+      borderTopColor: colors.borderMuted,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 2,
+      paddingTop: 6,
+    },
+    assigneeTag: {
+      alignItems: 'center',
+      backgroundColor: isDark ? colors.surfaceSecondary : '#EBF0FF',
+      borderColor: colors.border,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    assigneeTagText: {
+      color: colors.accentBlue,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      marginBottom: Spacing.md,
+      padding: Spacing.md,
+      ...BrutalShadow,
+    },
+    cardDone: {
+      backgroundColor: isDark ? colors.surfaceSecondary : '#F3F3F0',
+      borderColor: colors.borderMuted,
+      shadowOpacity: 0.2,
+    },
+    cardOverdue: {
+      borderColor: colors.accentOrange,
+      borderLeftWidth: 5,
+    },
+    checkbox: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      height: 26,
+      justifyContent: 'center',
+      marginTop: 2,
+      width: 26,
+    },
+    checkboxDone: {
+      backgroundColor: colors.text,
+      borderColor: colors.text,
+    },
+    contentRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: 12,
+      marginVertical: Spacing.sm,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    descriptionDone: {
+      color: colors.textMuted,
+    },
+    dueBadge: {
+      alignItems: 'center',
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      flexDirection: 'row',
+      gap: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    dueBadgeOverdue: {
+      borderColor: colors.accentOrange,
+    },
+    dueBadgeText: {
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    footerBar: {
+      alignItems: 'center',
+      borderTopColor: colors.borderMuted,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: Spacing.xs,
+      paddingTop: Spacing.sm,
+    },
+    idContainer: {
+      flexDirection: 'row',
+    },
+    idText: {
+      color: colors.textMuted,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    monoPill: {
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    monoPillOutline: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1.5,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    monoPillText: {
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    statusInProgressPill: {
+      backgroundColor: colors.accentBlue,
+    },
+    statusInProgressText: {
+      color: '#FFFFFF',
+    },
+    statusText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    tagsRow: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    teamTag: {
+      alignItems: 'center',
+      backgroundColor: colors.surfaceSecondary,
+      borderColor: colors.border,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    teamTagText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    textContainer: {
+      flex: 1,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '800',
+      letterSpacing: -0.3,
+      marginBottom: 4,
+    },
+    titleDone: {
+      color: colors.textMuted,
+      textDecorationLine: 'line-through',
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+  });

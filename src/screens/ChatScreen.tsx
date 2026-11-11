@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,13 +16,15 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { ChatMessage } from '../types/models.types';
 import { getTeamMessagesRealtime, sendChatMessage } from '../services/teamService';
-import { Colors, Spacing, Fonts, BrutalShadowSmall } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadowSmall, ColorTheme } from '../styles/theme';
 
 type ChatScreenProps = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
   const { teamId, teamName } = route.params;
   const { user, userProfile } = useAuth();
+  const { isDark, colors } = useTheme();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -30,6 +32,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   const [loading, setLoading] = useState(true);
 
   const flatListRef = useRef<FlatList>(null);
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   useEffect(() => {
     const unsub = getTeamMessagesRealtime(
@@ -94,7 +97,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={20} color={Colors.text} />
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.headerMeta}>{'// REAL-TIME WAR ROOM'}</Text>
@@ -111,7 +114,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
       {/* Messages Stream */}
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={Colors.text} />
+          <ActivityIndicator size="large" color={colors.text} />
           <Text style={styles.loadingText}>{'// SUBSCRIBING TO FIRESTORE STREAM...'}</Text>
         </View>
       ) : (
@@ -170,7 +173,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
         <TextInput
           style={styles.textInput}
           placeholder="TRANSMIT MESSAGE..."
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={colors.textMuted}
           value={inputText}
           onChangeText={setInputText}
           multiline
@@ -182,9 +185,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           activeOpacity={0.8}
         >
           {sending ? (
-            <ActivityIndicator color={Colors.text} size="small" />
+            <ActivityIndicator color="#121212" size="small" />
           ) : (
-            <Ionicons name="arrow-up" size={22} color={Colors.text} />
+            <Ionicons name="arrow-up" size={22} color="#121212" />
           )}
         </TouchableOpacity>
       </View>
@@ -192,181 +195,184 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   );
 };
 
-const styles = StyleSheet.create({
-  backBtn: {
-    borderColor: Colors.border,
-    borderWidth: 2,
-    padding: 8,
-  },
-  bubbleMe: {
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    ...BrutalShadowSmall,
-  },
-  bubbleOther: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    ...BrutalShadowSmall,
-  },
-  centerBox: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    padding: Spacing.xl,
-  },
-  container: {
-    backgroundColor: Colors.background,
-    flex: 1,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    borderColor: Colors.borderMuted,
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    marginTop: Spacing.xl,
-    padding: Spacing.xl,
-  },
-  emptySubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  emptyTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  header: {
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-    borderBottomColor: Colors.border,
-    borderBottomWidth: 2,
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  headerMeta: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  headerTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.display,
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-  },
-  inputContainer: {
-    backgroundColor: Colors.surface,
-    borderTopColor: Colors.border,
-    borderTopWidth: 2,
-    flexDirection: 'row',
-    gap: 10,
-    padding: Spacing.sm,
-  },
-  listContent: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.lg,
-  },
-  liveDot: {
-    backgroundColor: Colors.accentGreen,
-    borderRadius: 4,
-    height: 8,
-    width: 8,
-  },
-  liveIndicator: {
-    alignItems: 'center',
-    borderColor: Colors.border,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  liveText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  loadingText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    marginTop: Spacing.sm,
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  messageText: {
-    color: Colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  messageTextMe: {
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  messageWrapper: {
-    marginBottom: Spacing.sm,
-  },
-  messageWrapperMe: {
-    alignItems: 'flex-end',
-  },
-  messageWrapperOther: {
-    alignItems: 'flex-start',
-  },
-  sendBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-    ...BrutalShadowSmall,
-  },
-  senderName: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  textInput: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    color: Colors.text,
-    flex: 1,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    maxHeight: 100,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-  },
-  timeText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.mono,
-    fontSize: 9,
-    marginTop: 4,
-    textAlign: 'right',
-  },
-  timeTextMe: {
-    color: Colors.textSecondary,
-  },
-});
+const createStyles = (colors: ColorTheme, isDark: boolean) =>
+  StyleSheet.create({
+    backBtn: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      padding: 8,
+    },
+    bubbleMe: {
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      ...BrutalShadowSmall,
+    },
+    bubbleOther: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      ...BrutalShadowSmall,
+    },
+    centerBox: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      padding: Spacing.xl,
+    },
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      borderColor: colors.borderMuted,
+      borderStyle: 'dashed',
+      borderWidth: 2,
+      marginTop: Spacing.xl,
+      padding: Spacing.xl,
+    },
+    emptySubtitle: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      marginTop: 6,
+      textAlign: 'center',
+    },
+    emptyTitle: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 14,
+      fontWeight: '900',
+    },
+    header: {
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderBottomColor: colors.border,
+      borderBottomWidth: 2,
+      flexDirection: 'row',
+      gap: 12,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.md,
+    },
+    headerInfo: {
+      flex: 1,
+    },
+    headerMeta: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+    headerTitle: {
+      color: colors.text,
+      fontFamily: Fonts.display,
+      fontSize: 20,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+    inputContainer: {
+      backgroundColor: colors.surface,
+      borderTopColor: colors.border,
+      borderTopWidth: 2,
+      flexDirection: 'row',
+      gap: 10,
+      padding: Spacing.sm,
+    },
+    listContent: {
+      padding: Spacing.md,
+      paddingBottom: Spacing.lg,
+    },
+    liveDot: {
+      backgroundColor: colors.accentGreen,
+      borderRadius: 4,
+      height: 8,
+      width: 8,
+    },
+    liveIndicator: {
+      alignItems: 'center',
+      backgroundColor: isDark ? '#0F3628' : '#E6FBF2',
+      borderColor: colors.accentGreen,
+      borderWidth: 1.5,
+      flexDirection: 'row',
+      gap: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    liveText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    loadingText: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      marginTop: Spacing.sm,
+    },
+    messageBubble: {
+      maxWidth: '80%',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    messageText: {
+      color: colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    messageTextMe: {
+      color: '#121212',
+      fontWeight: '700',
+    },
+    messageWrapper: {
+      marginBottom: Spacing.sm,
+    },
+    messageWrapperMe: {
+      alignItems: 'flex-end',
+    },
+    messageWrapperOther: {
+      alignItems: 'flex-start',
+    },
+    sendBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      height: 48,
+      justifyContent: 'center',
+      width: 48,
+      ...BrutalShadowSmall,
+    },
+    senderName: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    textInput: {
+      backgroundColor: isDark ? colors.background : colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      color: colors.text,
+      flex: 1,
+      fontFamily: Fonts.mono,
+      fontSize: 13,
+      maxHeight: 100,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+    },
+    timeText: {
+      color: colors.textMuted,
+      fontFamily: Fonts.mono,
+      fontSize: 9,
+      marginTop: 4,
+      textAlign: 'right',
+    },
+    timeTextMe: {
+      color: '#262626',
+    },
+  });

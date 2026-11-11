@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TeamsScreen } from '../screens/TeamsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { Colors, Fonts } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Fonts } from '../styles/theme';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -15,16 +16,18 @@ export type RootTabParamList = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export const BottomTabNavigator: React.FC = () => {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: Colors.text,
-        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarActiveTintColor: colors.accentElectric,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: Colors.background,
-          borderTopColor: Colors.border,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 2,
           height: 64,
           paddingBottom: 8,

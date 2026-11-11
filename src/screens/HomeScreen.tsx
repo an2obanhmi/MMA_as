@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,8 +18,8 @@ import { TaskFormModal } from '../components/TaskFormModal';
 import { StatusFilter } from '../components/StatusFilter';
 import { useTasks } from '../hooks/useTasks';
 import { Task, TaskFilter } from '../types/task.types';
-import { Colors, Spacing, Fonts, BrutalShadow } from '../styles/theme';
-
+import { Spacing, Fonts, BrutalShadow, ColorTheme } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserTeamsRealtime } from '../services/teamService';
 import { Team } from '../types/models.types';
@@ -28,6 +28,8 @@ export const HomeScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
   const { user } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('All');
   const [modalVisible, setModalVisible] = useState(false);
@@ -122,7 +124,7 @@ export const HomeScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Neo-brutalist Header */}
       <Header completedCount={completedCount} totalCount={totalCount} />
 
@@ -145,8 +147,10 @@ export const HomeScreen: React.FC = () => {
         {/* Task List / Loading / Empty States */}
         {loading ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color={Colors.text} />
-            <Text style={styles.loadingText}>{'// CONNECTING FIRESTORE STREAM...'}</Text>
+            <ActivityIndicator size="large" color={colors.text} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              {'// CONNECTING FIRESTORE STREAM...'}
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -170,17 +174,17 @@ export const HomeScreen: React.FC = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={[Colors.text]}
-                tintColor={Colors.text}
+                colors={[colors.text]}
+                tintColor={colors.text}
               />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <View style={styles.emptySquare}>
-                  <Ionicons name="code-working" size={36} color={Colors.text} />
+                <View style={[styles.emptySquare, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+                  <Ionicons name="code-working" size={36} color={colors.text} />
                 </View>
-                <Text style={styles.emptyTitle}>NO_ITEMS_FOUND</Text>
-                <Text style={styles.emptySubtitle}>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>NO_ITEMS_FOUND</Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
                   {activeFilter === 'All'
                     ? 'BOARD IS COMPLETELY CLEAR. INITIATE A NEW TASK BELOW.'
                     : `ZERO TASKS CLASSIFIED UNDER [${activeFilter.toUpperCase()}].`}
@@ -202,12 +206,12 @@ export const HomeScreen: React.FC = () => {
 
       {/* Rebellious Floating Action Button (FAB) */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.accentElectric, borderColor: colors.border }]}
         onPress={handleOpenCreate}
         activeOpacity={0.85}
         accessibilityLabel="Create task"
       >
-        <Ionicons name="add" size={32} color={Colors.text} />
+        <Ionicons name="add" size={32} color="#111111" />
       </TouchableOpacity>
 
       {/* Create / Edit Modal Form */}
@@ -225,118 +229,119 @@ export const HomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  centerBox: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    padding: Spacing.xl,
-  },
-  container: {
-    backgroundColor: Colors.background,
-    flex: 1,
-  },
-  emptyButton: {
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    marginTop: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-    ...BrutalShadow,
-  },
-  emptyButtonText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    borderColor: Colors.borderMuted,
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    justifyContent: 'center',
-    marginHorizontal: Spacing.xs,
-    marginTop: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: 48,
-  },
-  emptySquare: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    height: 64,
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-    width: 64,
-    ...BrutalShadow,
-  },
-  emptySubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    lineHeight: 16,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  emptyTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 1,
-    marginTop: Spacing.xs,
-  },
-  errorBanner: {
-    backgroundColor: Colors.accentOrange,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    marginHorizontal: Spacing.md,
-    marginVertical: Spacing.xs,
-    padding: Spacing.sm,
-  },
-  errorBannerText: {
-    color: '#FFFFFF',
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  fab: {
-    alignItems: 'center',
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderRadius: 0, // Sharp square Neo-Brutalist
-    borderWidth: 2.5,
-    bottom: 24,
-    height: 58,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 20,
-    width: 58,
-    ...BrutalShadow,
-  },
-  listContent: {
-    paddingBottom: 96,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
-  },
-  loadingText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginTop: Spacing.sm,
-  },
-  mainWrapper: {
-    flex: 1,
-    width: '100%',
-  },
-  tabletWrapper: {
-    alignSelf: 'center',
-    maxWidth: 720,
-  },
-});
+const createStyles = (colors: ColorTheme, _isDark: boolean) =>
+  StyleSheet.create({
+    centerBox: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      padding: Spacing.xl,
+    },
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
+    emptyButton: {
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      marginTop: Spacing.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+      ...BrutalShadow,
+    },
+    emptyButtonText: {
+      color: '#111111',
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      borderColor: colors.borderMuted,
+      borderStyle: 'dashed',
+      borderWidth: 2,
+      justifyContent: 'center',
+      marginHorizontal: Spacing.xs,
+      marginTop: Spacing.lg,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: 48,
+    },
+    emptySquare: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      height: 64,
+      justifyContent: 'center',
+      marginBottom: Spacing.sm,
+      width: 64,
+      ...BrutalShadow,
+    },
+    emptySubtitle: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      lineHeight: 16,
+      marginTop: 6,
+      textAlign: 'center',
+    },
+    emptyTitle: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 16,
+      fontWeight: '900',
+      letterSpacing: 1,
+      marginTop: Spacing.xs,
+    },
+    errorBanner: {
+      backgroundColor: colors.accentOrange,
+      borderColor: colors.border,
+      borderWidth: 2,
+      marginHorizontal: Spacing.md,
+      marginVertical: Spacing.xs,
+      padding: Spacing.sm,
+    },
+    errorBannerText: {
+      color: '#FFFFFF',
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    fab: {
+      alignItems: 'center',
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderRadius: 0, // Sharp square Neo-Brutalist
+      borderWidth: 2.5,
+      bottom: 24,
+      height: 58,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: 20,
+      width: 58,
+      ...BrutalShadow,
+    },
+    listContent: {
+      paddingBottom: 96,
+      paddingHorizontal: Spacing.md,
+      paddingTop: Spacing.sm,
+    },
+    loadingText: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+      marginTop: Spacing.sm,
+    },
+    mainWrapper: {
+      flex: 1,
+      width: '100%',
+    },
+    tabletWrapper: {
+      alignSelf: 'center',
+      maxWidth: 720,
+    },
+  });

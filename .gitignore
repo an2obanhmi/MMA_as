@@ -38,6 +38,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# word temp files & docs
+~$*.docx
+*.docx
+
 # generated native folders
 /ios
 /android

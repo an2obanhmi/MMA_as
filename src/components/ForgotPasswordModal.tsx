@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Fonts, BrutalShadow, BrutalShadowSmall } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadow, BrutalShadowSmall, ColorTheme } from '../styles/theme';
 import { sendResetPasswordEmail } from '../services/authService';
 
 interface ForgotPasswordModalProps {
@@ -26,6 +27,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
   const [email, setEmail] = useState(initialEmail);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -92,7 +96,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               activeOpacity={0.7}
               disabled={loading}
             >
-              <Ionicons name="close" size={20} color={Colors.text} />
+              <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -104,7 +108,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           {/* Error Banner */}
           {errorMessage ? (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={16} color={Colors.accentOrange} />
+              <Ionicons name="alert-circle-outline" size={16} color={colors.accentOrange} />
               <Text style={styles.errorText}>{errorMessage}</Text>
             </View>
           ) : null}
@@ -115,7 +119,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
             <TextInput
               style={[styles.input, isFocused && styles.inputFocused]}
               placeholder="example@gmail.com"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -149,7 +153,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               activeOpacity={0.8}
             >
               {loading ? (
-                <ActivityIndicator color={Colors.text} size="small" />
+                <ActivityIndicator color="#121212" size="small" />
               ) : (
                 <Text style={styles.submitBtnText}>GỬI LIÊN KẾT -{'>'}</Text>
               )}
@@ -161,140 +165,142 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 16, 18, 0.75)',
-    flex: 1,
-    justifyContent: 'center',
-    padding: Spacing.lg,
-  },
-  modalSheet: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.border,
-    borderWidth: 2.5,
-    padding: Spacing.lg,
-    width: '100%',
-    ...BrutalShadow,
-  },
-  modalHeader: {
-    alignItems: 'flex-start',
-    borderBottomColor: Colors.border,
-    borderBottomWidth: 2,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-    paddingBottom: Spacing.sm,
-  },
-  modalSub: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  modalTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.display,
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-  },
-  closeBtn: {
-    alignItems: 'center',
-    borderColor: Colors.border,
-    borderWidth: 2,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  modalDesc: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: Spacing.md,
-  },
-  errorBox: {
-    alignItems: 'center',
-    backgroundColor: '#FFEBE6',
-    borderColor: Colors.accentOrange,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: Spacing.md,
-    padding: 10,
-  },
-  errorText: {
-    color: Colors.accentOrange,
-    flex: 1,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  fieldGroup: {
-    marginBottom: Spacing.md,
-  },
-  fieldLabel: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 12,
-  },
-  inputFocused: {
-    backgroundColor: '#FFFDEB',
-    borderColor: Colors.border,
-    borderWidth: 2.5,
-  },
-  modalActionRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  cancelBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: 12,
-  },
-  cancelBtnText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  submitBtn: {
-    alignItems: 'center',
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    flex: 2,
-    justifyContent: 'center',
-    paddingVertical: 12,
-    ...BrutalShadowSmall,
-  },
-  submitBtnDisabled: {
-    opacity: 0.7,
-  },
-  submitBtnText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-});
+const createStyles = (colors: ColorTheme, isDark: boolean) =>
+  StyleSheet.create({
+    cancelBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      flex: 1,
+      justifyContent: 'center',
+      paddingVertical: 12,
+    },
+    cancelBtnText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    closeBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      height: 32,
+      justifyContent: 'center',
+      width: 32,
+    },
+    errorBox: {
+      alignItems: 'center',
+      backgroundColor: isDark ? '#3E1810' : '#FFEBE6',
+      borderColor: colors.accentOrange,
+      borderWidth: 1.5,
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: Spacing.md,
+      padding: 10,
+    },
+    errorText: {
+      color: colors.accentOrange,
+      flex: 1,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    fieldGroup: {
+      marginBottom: Spacing.md,
+    },
+    fieldLabel: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: isDark ? colors.background : colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2,
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 13,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 12,
+    },
+    inputFocused: {
+      backgroundColor: isDark ? '#2A2C18' : '#FFFDEB',
+      borderColor: colors.accentElectric,
+      borderWidth: 2.5,
+    },
+    modalActionRow: {
+      flexDirection: 'row',
+      gap: Spacing.md,
+      marginTop: Spacing.md,
+    },
+    modalDesc: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+      marginBottom: Spacing.md,
+    },
+    modalHeader: {
+      alignItems: 'flex-start',
+      borderBottomColor: colors.border,
+      borderBottomWidth: 2,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.md,
+      paddingBottom: Spacing.sm,
+    },
+    modalOverlay: {
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      flex: 1,
+      justifyContent: 'center',
+      padding: Spacing.lg,
+    },
+    modalSheet: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 2.5,
+      padding: Spacing.lg,
+      width: '100%',
+      ...BrutalShadow,
+    },
+    modalSub: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+    modalTitle: {
+      color: colors.text,
+      fontFamily: Fonts.display,
+      fontSize: 20,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+    submitBtn: {
+      alignItems: 'center',
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      flex: 2,
+      justifyContent: 'center',
+      paddingVertical: 12,
+      ...BrutalShadowSmall,
+    },
+    submitBtnDisabled: {
+      opacity: 0.7,
+    },
+    submitBtnText: {
+      color: '#121212',
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '900',
+      letterSpacing: 0.5,
+    },
+  });

@@ -1,6 +1,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+// @ts-expect-error Firebase JS SDK React Native bundle exports getReactNativePersistence at runtime
+import { initializeAuth, getReactNativePersistence, getAuth, Auth } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configuration keys read from EXPO_PUBLIC_* environment variables or default project config
 const firebaseConfig = {
@@ -16,6 +18,17 @@ const firebaseConfig = {
 // Singleton Firebase initialization pattern
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export const auth: Auth = getAuth(app);
+// Initialize Auth with AsyncStorage persistence to prevent memory-fallback warning & keep sessions alive
+let authInstance: Auth;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  });
+} catch {
+  // Fallback to existing instance if fast-refresh/hot reload re-evaluates module
+  authInstance = getAuth(app);
+}
+
+export const auth: Auth = authInstance;
 export const db: Firestore = getFirestore(app);
 export default app;

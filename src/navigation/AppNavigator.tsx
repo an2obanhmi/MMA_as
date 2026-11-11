@@ -7,7 +7,7 @@ import { SignUpScreen } from '../screens/SignUpScreen';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { TeamDetailScreen } from '../screens/TeamDetailScreen';
 import { ChatScreen } from '../screens/ChatScreen';
-import { Colors } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -21,17 +21,23 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator: React.FC = () => {
   const { user, loading } = useAuth();
+  const { colors } = useTheme();
 
   if (loading) {
     return (
-      <View style={styles.centerBox}>
-        <ActivityIndicator size="large" color={Colors.text} />
+      <View style={[styles.centerBox, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.text} />
       </View>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       {user ? (
         // Authenticated Stack
         <>
@@ -53,7 +59,6 @@ export const AppNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   centerBox: {
     alignItems: 'center',
-    backgroundColor: Colors.background,
     flex: 1,
     justifyContent: 'center',
   },

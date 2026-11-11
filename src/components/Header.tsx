@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, Fonts, BrutalShadowSmall } from '../styles/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { Spacing, Fonts, BrutalShadowSmall, ColorTheme } from '../styles/theme';
 
 interface HeaderProps {
   completedCount: number;
@@ -8,6 +9,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ completedCount, totalCount }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
   // Format current date: e.g. "OCT 13, 2026 // TUE"
   const now = new Date();
   const dayStr = now.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
@@ -42,73 +46,76 @@ export const Header: React.FC<HeaderProps> = ({ completedCount, totalCount }) =>
   );
 };
 
-const styles = StyleSheet.create({
-  accentBox: {
-    backgroundColor: Colors.accentElectric,
-    borderColor: Colors.border,
-    borderWidth: 2,
-    marginBottom: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    transform: [{ rotate: '-4deg' }],
-    ...BrutalShadowSmall,
-  },
-  accentBoxText: {
-    color: Colors.text,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  badgeRatio: {
-    backgroundColor: Colors.text,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeRatioText: {
-    color: Colors.textInverted,
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  container: {
-    backgroundColor: Colors.background,
-    borderBottomColor: Colors.border,
-    borderBottomWidth: 2,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
-  },
-  massiveTitle: {
-    color: Colors.text,
-    fontFamily: Fonts.display,
-    fontSize: 40,
-    fontWeight: '900',
-    letterSpacing: -1.5,
-  },
-  metaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  monoMeta: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  subtitle: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  titleRow: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+const createStyles = (colors: ColorTheme, _isDark: boolean) =>
+  StyleSheet.create({
+    accentBox: {
+      backgroundColor: colors.accentElectric,
+      borderColor: colors.border,
+      borderWidth: 2,
+      marginBottom: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      transform: [{ rotate: '-4deg' }],
+      ...BrutalShadowSmall,
+    },
+    accentBoxText: {
+      color: '#111111',
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '900',
+      letterSpacing: 1,
+    },
+    badgeRatio: {
+      backgroundColor: colors.surfaceSecondary,
+      borderColor: colors.border,
+      borderWidth: 1,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+    },
+    badgeRatioText: {
+      color: colors.text,
+      fontFamily: Fonts.mono,
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+    },
+    container: {
+      backgroundColor: colors.background,
+      borderBottomColor: colors.border,
+      borderBottomWidth: 2,
+      paddingHorizontal: Spacing.md,
+      paddingTop: Spacing.md,
+      paddingBottom: Spacing.lg,
+    },
+    massiveTitle: {
+      color: colors.text,
+      fontFamily: Fonts.display,
+      fontSize: 40,
+      fontWeight: '900',
+      letterSpacing: -1.5,
+    },
+    metaRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.sm,
+    },
+    monoMeta: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.mono,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+    subtitle: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '500',
+      marginTop: 2,
+    },
+    titleRow: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      gap: 8,
+    },
+  });
